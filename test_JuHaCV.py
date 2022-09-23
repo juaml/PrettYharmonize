@@ -24,7 +24,7 @@ HCV = JuHaCV()
 n_splits = 5
 kf = KFold(n_splits=n_splits,shuffle=True,random_state=42)
 
-Hall = H.fit(data, sites, target)
+Hall, _ = H.fit(data, sites, target)
 # Outer loop 
 for i_fold, (train_index, test_index) in enumerate(kf.split(data)):
     HCV = HCV.fit(data, sites, target, index=train_index)
@@ -40,7 +40,7 @@ for i_fold, (train_index, test_index) in enumerate(kf.split(data)):
     print(f"Acc leak1 in fold {i_fold}: {acc_leak}")
 
     # leaky way 2: test target used for harmonization
-    H = H.fit(data, sites, target, index=train_index)
+    H, _ = H.fit(data, sites, target, index=train_index)
     harm_data_leak = H.transform(data, sites, target, index=test_index)
     pred_class_leak = HCV.model_pred.predict(harm_data_leak)
     acc_leak = accuracy_score(pred_class_leak, target[test_index])

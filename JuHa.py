@@ -49,8 +49,8 @@ class JuHa:
             self.covars = np.array(list(covars.columns))
             covarsDF = covarsDF.append(covars)        
         
-        self.model, self.data = nh.harmonizationLearn(data, covarsDF)
-        return self
+        self.model, data = nh.harmonizationLearn(data, covarsDF)
+        return self, data
 
     def transform(self, data, sites, target=None, covars=None, index=None):
         '''
@@ -76,7 +76,8 @@ class JuHa:
             assert np.all(np.array(list(covars.columns)) == self.covars)
             covarsDF = covarsDF.append(covars)        
         
-        return nh.harmonizationApply(data, covarsDF, self.model)
+        data = nh.harmonizationApply(data, covarsDF, self.model)
+        return data
 
     def transform_target_pretend(self, data, sites, targets=None, 
                                  covars=None, index=None):
@@ -159,8 +160,8 @@ class JuHaCV(JuHa):
         for i_fold, (train_index, test_index) in enumerate(kf.split(data)):
             # harmonize using train data
             H = JuHa(preserve_target=self.preserve_target)
-            H = H.fit(data, sites, target, covars, index=train_index)
-            model.fit(H.data, target[train_index])
+            H, harm_data = H.fit(data, sites, target, covars, index=train_index)
+            model.fit(harm_data, target[train_index])
             # predict the test data while pretending the target
             data_pretend = H.transform_target_pretend(data, sites, 
                            covars=covars, index=test_index)        
@@ -172,8 +173,8 @@ class JuHaCV(JuHa):
         self.model_meta.fit(cv_preds, target)
 
         # also train harmonization and prediction models
-        self.model_harm = H.fit(data, sites, target, covars)
-        self.model_pred.fit(self.model_harm.data, target)
+        self.model_harm, harm_data = H.fit(data, sites, target, covars)
+        self.model_pred.fit(harm_data, target)
         
         return self
 

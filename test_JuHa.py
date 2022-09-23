@@ -37,9 +37,9 @@ sites = np.random.randint(low=0,high=2,size=num_samples)
 
 # test Harmonization implementation
 H = JuHa()
-H = H.fit(data, sites, target)
+H, harm_data = H.fit(data, sites, target)
 X = H.transform(data, sites, target)
-assert np.all(X == H.data)
+assert np.all(X == harm_data)
 
 ### test Harmonization in CV
 ### Variables
@@ -70,10 +70,11 @@ for i_fold, (outer_train_index, outer_test_index) in enumerate(kf_outer.split(da
         idx_test_inner = outer_train_index[inner_test_index]
         
         # Harmonize training data
-        Hinner = H.fit(data[idx_train_inner], sites[idx_train_inner], target[idx_train_inner])
+        Hinner, harm_data_inner = H.fit(data[idx_train_inner], 
+                                  sites[idx_train_inner], target[idx_train_inner])
         
         # Fit the clf to harmonized data
-        clf.fit(Hinner.data, target[idx_train_inner])
+        clf.fit(harm_data_inner, target[idx_train_inner])
         
         # Predict the probabilities of the inner test data
         data_pretend_inner = Hinner.transform_target_pretend(data[idx_test_inner], sites[idx_test_inner])        
@@ -88,10 +89,11 @@ for i_fold, (outer_train_index, outer_test_index) in enumerate(kf_outer.split(da
     logit.fit(cv_predictions, target[outer_train_index])
 
     # Train an harmonization model with all available train data
-    Houter = H.fit(data[outer_train_index], sites[outer_train_index], target[outer_train_index])
+    Houter, harm_data_outer = H.fit(data[outer_train_index], sites[outer_train_index], 
+                   target[outer_train_index])
 
     # Train a model over all the available data
-    clf.fit(Houter.data, target[outer_train_index])
+    clf.fit(harm_data_outer, target[outer_train_index])
 
     test_predictions = np.zeros((outer_test_index.shape[0], n_classes))
     data_pretend_outer = Houter.transform_target_pretend(data[outer_test_index], sites[outer_test_index])        
@@ -102,10 +104,11 @@ for i_fold, (outer_train_index, outer_test_index) in enumerate(kf_outer.split(da
     # Predict the test classes with the builded model
     pred_class = logit.predict(test_predictions)
     acc = accuracy_score(pred_class, target[outer_test_index])
-    print(f"Acc in fold {i_fold}: {acc}")
+    print(f"Acc in fold {i_fold}     : {acc}")
 
     # do leaky predictions for comparison
     data_leak = Houter.transform(data[outer_test_index], sites[outer_test_index], target[outer_test_index])
     pred_cls_leak = clf.predict(data_leak)
     acc_leak = accuracy_score(pred_cls_leak, target[outer_test_index])
-    print(f"Acc leaked in fold {i_fold}: {acc_leak}")
+    print(f"Acc leak in fold {i_fold}: {acc_leak}")
+    print('----------------------------')
