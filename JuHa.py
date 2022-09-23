@@ -161,15 +161,17 @@ class JuHaCV(JuHa):
                    random_state=self.random_state)
         # collect predictions over the whole data
         cv_preds = np.ones((data.shape[0], n_targets)) * -1
-        for i_fold, (train_index, test_index) in enumerate(kf.split(data)):
-            # harmonize using train data
+        for train_index, test_index in kf.split(data):
+            # harmonize train data
             H = JuHa(preserve_target=self.preserve_target)
             H, harm_data = H.fit(data, sites, target,
                                  covars, index=train_index)
+            if np.any(np.isnan(harm_data)) or np.any(np.isinf(harm_data)):
+                raise Exception("Harmonization of trainig data failed in CV!")
             model.fit(harm_data, target[train_index])
             # predict the test data while pretending the target
             data_pretend = H.transform_target_pretend(data, sites,
-                                                      covars=covars, index=test_index)
+                             covars=covars, index=test_index)
             for i_cls, t_cls in enumerate(self.targets):
                 pred_cls = model.predict_proba(data_pretend[t_cls])
                 cv_preds[test_index, i_cls] = pred_cls[:, 0]

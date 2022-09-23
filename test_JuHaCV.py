@@ -13,9 +13,10 @@ target = dataset['target']
 data = dataset['data']
 num_samples, num_features = data.shape
 # generate random sites
-sites = np.random.randint(low=0, high=2, size=num_samples)
-
-data[sites == 1] = data[sites == 1] + 1
+#sites = np.random.randint(low=0, high=2, size=num_samples)
+#data[sites == 1] = data[sites == 1] + 1
+sites = np.random.choice(['A', 'B'], num_samples)
+print('Sites: ', np.unique(sites))
 
 H = JuHa()
 HCV = JuHaCV()
