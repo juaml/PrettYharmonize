@@ -154,26 +154,37 @@ class JuHaCV(JuHa):
 
         kf = KFold(n_splits=self.n_splits, shuffle=True,
                    random_state=self.random_state)
+        # collect predictions over the whole data
         cv_preds = np.ones((data.shape[0], n_targets)) * -1
         for i_fold, (train_index, test_index) in enumerate(kf.split(data)):
+            # harmonize using train data
             H = JuHa(preserve_target=self.preserve_target)
             H = H.fit(data, sites, target, covars, index=train_index)
             model.fit(H.data, target[train_index])
+            # predict the test data while pretending the target
             data_pretend = H.transform_target_pretend(data, sites, 
                            covars=covars, index=test_index)        
             for i_cls, t_cls in enumerate(self.targets):            
                 pred_cls =  model.predict_proba(data_pretend[t_cls])
                 cv_preds[test_index, i_cls] = pred_cls[:, 0]
         
+        # train the meta model that uses the predictions from CV
         self.model_meta.fit(cv_preds, target)
 
+        # also train harmonization and prediction models
         self.model_harm = H.fit(data, sites, target, covars)
         self.model_pred.fit(self.model_harm.data, target)
         
         return self
 
     def transform(self, data, sites, covars=None, index=None):
-        if self.model_pred is None:
+        '''
+        make predictions while pretending target values. 
+        note that target is not an argument here.
+        '''
+        if self.model_pred is None \
+            or self.model_harm is None \
+            or self.model_meta is None:
             raise Exception("Model not fitted")
         
         if self.expect_covars:
