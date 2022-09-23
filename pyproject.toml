@@ -34,7 +34,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
 ]
 dependencies = [
-    "numpy>=1.22,<1.23",
+    "numpy>=1.21,<1.23",
     "julearn>=0.2",
     "pandas>=1.4.0,<1.5",
 ]
