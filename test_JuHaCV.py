@@ -1,5 +1,5 @@
 # %%
-### Imports
+# Imports
 import numpy as np
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score
@@ -7,25 +7,25 @@ import matplotlib.pyplot as plt
 from JuHa import JuHa, JuHaCV
 from sklearn.datasets import load_breast_cancer
 
-### Load data
+# Load data
 dataset = load_breast_cancer()
 target = dataset['target']
 data = dataset['data']
 num_samples, num_features = data.shape
 # generate random sites
-sites = np.random.randint(low=0,high=2,size=num_samples)
+sites = np.random.randint(low=0, high=2, size=num_samples)
 
 data[sites == 1] = data[sites == 1] + 1
 
 H = JuHa()
 HCV = JuHaCV()
 
-### test Harmonization in CV
+# test Harmonization in CV
 n_splits = 5
-kf = KFold(n_splits=n_splits,shuffle=True,random_state=42)
+kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
 
 Hall, _ = H.fit(data, sites, target)
-# Outer loop 
+# Outer loop
 for i_fold, (train_index, test_index) in enumerate(kf.split(data)):
     HCV = HCV.fit(data, sites, target, index=train_index)
     pred_class = HCV.transform(data, sites, index=test_index)
