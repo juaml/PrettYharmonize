@@ -291,7 +291,7 @@ class JuHaCV:
                 pred_model, "binary_classification"
             )
         self.pred_model: ClassifierMixin = pred_model  # type: ignore
-        self.pred_model.set_params(probability=True)
+        #self.pred_model.set_params(probability=True)
 
     def fit(
         self,
