@@ -167,6 +167,9 @@ class JuHaCV(JuHa):
             H, harm_data = H.fit(data, sites, target,
                                  covars, index=train_index)
             if np.any(np.isnan(harm_data)) or np.any(np.isinf(harm_data)):
+                print("Warning: NaNs or Infs in harmonized data")
+                print("Sites: ", np.unique(sites[train_index]))
+                print("Targets: ", np.unique(target[train_index]))
                 raise Exception("Harmonization of trainig data failed in CV!")
             model.fit(harm_data, target[train_index])
             # predict the test data while pretending the target
