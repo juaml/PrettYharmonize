@@ -7,7 +7,7 @@ from sklearn.model_selection import KFold
 from sklearn.svm import  SVC
 from sklearn.linear_model import LogisticRegression
 
-class JuHarm:
+class JuHa:
     def __init__(self, preserve_target=True):        
         self.preserve_target = preserve_target
         self.model = None
@@ -115,7 +115,7 @@ class JuHarm:
 
 
 # 
-class JuHarmCV(JuHarm):
+class JuHaCV(JuHa):
     def __init__(self, preserve_target=True, n_splits=5, random_state=None):
         super().__init__(preserve_target=preserve_target)
         self.model_harm = None
@@ -156,7 +156,7 @@ class JuHarmCV(JuHarm):
                    random_state=self.random_state)
         cv_preds = np.ones((data.shape[0], n_targets)) * -1
         for i_fold, (train_index, test_index) in enumerate(kf.split(data)):
-            H = JuHarm(preserve_target=self.preserve_target)
+            H = JuHa(preserve_target=self.preserve_target)
             H = H.fit(data, sites, target, covars, index=train_index)
             model.fit(H.data, target[train_index])
             data_pretend = H.transform_target_pretend(data, sites, 

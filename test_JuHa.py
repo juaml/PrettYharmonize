@@ -10,7 +10,7 @@ from sklearn.utils import shuffle
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 
-from JuHarm import JuHarm
+from JuHa import JuHa
 
 ### Load data
 df_iris = load_dataset('iris')
@@ -35,9 +35,8 @@ num_samples, num_features = data.shape
 # generate random sites
 sites = np.random.randint(low=0,high=2,size=num_samples)
 
-
 # test Harmonization implementation
-H = JuHarm()
+H = JuHa()
 H = H.fit(data, sites, target)
 X = H.transform(data, sites, target)
 assert np.all(X == H.data)
