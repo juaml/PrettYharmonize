@@ -170,6 +170,8 @@ class JuHaCV(JuHa):
                 print("Warning: NaNs or Infs in harmonized data")
                 print("Sites: ", np.unique(sites[train_index]))
                 print("Targets: ", np.unique(target[train_index]))
+                data_colvar = np.var(data[train_index], axis=0)
+                print("Data columns with low variance: ", np.sum(data_colvar < 1e-6))
                 raise Exception("Harmonization of trainig data failed in CV!")
             model.fit(harm_data, target[train_index])
             # predict the test data while pretending the target
