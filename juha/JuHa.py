@@ -357,10 +357,7 @@ class JuHaCV:
                 cv_preds[
                     test_index, i_class
                 ] = self.pred_model.predict_proba(  # type: ignore
-                    X_test_harmonized
-                )[
-                    :, 1
-                ]
+                    X_test_harmonized)[:,0]
 
         # Train the harmonization model on all the data
         self._nh_model = JuHa(preserve_target=self.preserve_target)
