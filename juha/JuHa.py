@@ -341,7 +341,7 @@ class JuHaCV:
             t_model = JuHa(preserve_target=self.preserve_target)
 
             # Learn how to harmonize the train data
-            t_X_harmonized = t_model.fit(
+            t_X_harmonized = t_model.fit_transform(
                 X_train, y_train, sites_train, covars_train)  # type: ignore
 
             # Learn how to predict y from the harmonized train data
