@@ -341,11 +341,11 @@ class JuHaCV:
             t_model = JuHa(preserve_target=self.preserve_target)
 
             # Learn how to harmonize the train data
-            t_model.fit(
+            t_X_harmonized = t_model.fit(
                 X_train, y_train, sites_train, covars_train)  # type: ignore
 
             # Learn how to predict y from the harmonized train data
-            self.pred_model.fit(X_train, y_train)  # type: ignore
+            self.pred_model.fit(t_X_harmonized, y_train)  # type: ignore
 
             # For each class, predict the probability of the test data if
             # it was harmonized as belonging to that class
