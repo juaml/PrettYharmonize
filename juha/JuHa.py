@@ -243,14 +243,13 @@ class JuHaCV:
     ) -> None:
         """Initialize the class."""
         assert problem_type in ["binary_classification", "regression"]
-        if problem_type == "regression":
-            self.regression_points = regression_points
-
+        
         self.problem_type = problem_type
         self._nh_model = None
         self.n_folds = n_folds
         self.random_state = random_state
         self.preserve_target = preserve_target
+        self.regression_points = regression_points
 
         if pred_model is None:
             pred_model = "svm"
@@ -259,21 +258,25 @@ class JuHaCV:
             if problem_type == "binary_classification":
                 stack_model = "logit"
             elif problem_type == "regression":
-                stack_model = "ridge"
+                stack_model = "svm"
 
         if isinstance(stack_model, str):
             _, stack_model = julearn.api.prepare_model(
-                stack_model, problem_type
-            )
-        self.stack_model: ClassifierMixin = stack_model  # type: ignore
+                stack_model, problem_type)
+        
         if isinstance(pred_model, str):
             _, pred_model = julearn.api.prepare_model(
-                pred_model, problem_type
-            )
+                pred_model, problem_type)
+
         if problem_type == "binary_classification":
             self.pred_model: ClassifierMixin = pred_model  # type: ignore
+            self.stack_model: ClassifierMixin = stack_model  # type: ignore
         elif problem_type == "regression":
             self.pred_model: RegressorMixin = pred_model
+            self.stack_model: RegressorMixin = stack_model
+        
+        print(self.pred_model)
+        print(self.stack_model)
         #self.pred_model.set_params(probability=True)
 
     def fit(
@@ -303,10 +306,14 @@ class JuHaCV:
 
         if self.problem_type == "binary_classification":
             self._classes = np.sort(np.unique(y))
+            assert len(self._classes) == 2
         else:
             if self.regression_points is None:
                 self.regression_points = np.linspace(min(y), max(y), 10)
-            self._classes = len(self.regression_points)
+            elif isinstance(self.regression_points, int):
+                n_point = self.regression_points
+                self.regression_points = np.linspace(min(y), max(y), n_point)
+            self._classes = self.regression_points
             if np.min(y) > np.min(self.regression_points):
                 print("Warning: min(y) > min(regression_points)"
                     f"Minimum value of y is {np.min(y)} but "
@@ -339,6 +346,8 @@ class JuHaCV:
             # Learn how to harmonize the train data
             t_X_harmonized = t_model.fit_transform(
                 X_train, y_train, sites_train, covars_train)  # type: ignore
+            _check_harmonization_results(X_train, t_X_harmonized,
+            sites_train, y_train)
 
             # Learn how to predict y from the harmonized train data
             self.pred_model.fit(t_X_harmonized, y_train)  # type: ignore
@@ -348,8 +357,9 @@ class JuHaCV:
             for i_class, t_class in enumerate(self._classes):
                 t_y_test = np.ones(len(y_test), dtype=int) * t_class
                 X_test_harmonized = t_model.transform(
-                    X_test, t_y_test, sites_test, covars_test  # type: ignore
-                )
+                    X_test, t_y_test, sites_test, covars_test)
+                _check_harmonization_results(X_test, X_test_harmonized,
+                sites_test, t_y_test)
                 if self.problem_type == "binary_classification":
                     cv_preds[test_index, i_class] = \
                     self.pred_model.predict_proba(X_test_harmonized)[:, 0]
@@ -442,8 +452,7 @@ class JuHaCV:
                 t_X_harmonized)
         
         if self.problem_type == "binary_classification":
-            pred_y_proba = self.stack_model.predict_proba(preds)  # type: ignore
-            self._pred_y_proba = pred_y_proba
+            self.pred_y_proba = self.stack_model.predict_proba(preds)  # type: ignore
         pred_y = self.stack_model.predict(preds)  # type: ignore
         self._pred_y = pred_y
         X_harmonized = self._nh_model.transform(X, pred_y, sites, covars)
