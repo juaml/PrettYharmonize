@@ -274,9 +274,6 @@ class JuHaCV:
         elif problem_type == "regression":
             self.pred_model: RegressorMixin = pred_model
             self.stack_model: RegressorMixin = stack_model
-        
-        print(self.pred_model)
-        print(self.stack_model)
         #self.pred_model.set_params(probability=True)
 
     def fit(
