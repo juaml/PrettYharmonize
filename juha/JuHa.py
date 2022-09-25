@@ -244,9 +244,6 @@ class JuHaCV:
         """Initialize the class."""
         assert problem_type in ["binary_classification", "regression"]
         if problem_type == "regression":
-            assert regression_points is not None
-            assert isinstance(regression_points, list)
-            assert len(regression_points) > 1
             self.regression_points = regression_points
 
         self.problem_type = problem_type
@@ -307,6 +304,8 @@ class JuHaCV:
         if self.problem_type == "binary_classification":
             self._classes = np.sort(np.unique(y))
         else:
+            if self.regression_points is None:
+                self.regression_points = np.linspace(min(y), max(y), 10)
             self._classes = len(self.regression_points)
             if np.min(y) > np.min(self.regression_points):
                 print("Warning: min(y) > min(regression_points)"
