@@ -241,23 +241,22 @@ class JuHaCV:
         pred_model: Optional[str] = None,
         regression_points: Optional[list] = None,
     ) -> None:
-        self.problem_type = problem_type
-        self._nh_model = None
-        self.n_folds = n_folds
-        self.random_state = random_state
-        self.preserve_target = preserve_target
-
+        """Initialize the class."""
+        assert problem_type in ["binary_classification", "regression"]
         if problem_type == "regression":
             assert regression_points is not None
             assert isinstance(regression_points, list)
             assert len(regression_points) > 1
             self.regression_points = regression_points
 
+        self.problem_type = problem_type
+        self._nh_model = None
+        self.n_folds = n_folds
+        self.random_state = random_state
+        self.preserve_target = preserve_target
+
         if pred_model is None:
-            if problem_type == "binary_classification":
-                pred_model = "svm"
-            elif problem_type == "regression":
-                pred_model = "svr"
+            pred_model = "svm"
         
         if stack_model is None:
             if problem_type == "binary_classification":
@@ -354,7 +353,7 @@ class JuHaCV:
                 )
                 if self.problem_type == "binary_classification":
                     cv_preds[test_index, i_class] = \
-                    self.pred_model.predict_proba(X_test_harmonized)[:,0]
+                    self.pred_model.predict_proba(X_test_harmonized)[:, 0]
                 else:
                     cv_preds[test_index, i_class] = \
                     self.pred_model.predict(X_test_harmonized)
@@ -437,9 +436,8 @@ class JuHaCV:
             t_y = np.ones(X.shape[0], dtype=int) * t_cls
             t_X_harmonized = self._nh_model.transform(X, t_y, sites, covars)
             if self.problem_type == "binary_classification":
-                pred_cls = self.pred_model.predict_proba(  # type: ignore
-                t_X_harmonized)
-                preds[:, i_cls] = pred_cls[:, 0]
+                preds[:, i_cls] = self.pred_model.predict_proba(  # type: ignore
+                t_X_harmonized)[:, 0]
             else:
                 preds[:, i_cls] = self.pred_model.predict(  # type: ignore
                 t_X_harmonized)
