@@ -311,6 +311,11 @@ class JuHaCV:
                 n_point = self.regression_points
                 self.regression_points = np.linspace(min(y), max(y), n_point)
             self._classes = self.regression_points
+            self._y_min = min(y)
+            self._y_max = max(y)
+            self._y_mean = np.mean(y)
+            self._y_std = np.std(y)
+            self._y_median = np.median(y) 
             if np.min(y) > np.min(self.regression_points):
                 print("Warning: min(y) > min(regression_points)"
                     f"Minimum value of y is {np.min(y)} but "
