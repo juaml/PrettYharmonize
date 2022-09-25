@@ -233,26 +233,51 @@ class JuHaCV:
 
     def __init__(
         self,
+        problem_type: str,
         preserve_target: bool = True,
         n_folds: int = 5,
         random_state: Optional[int] = None,
-        stack_model: str = "logit",
-        pred_model: str = "svm",
+        stack_model: Optional[str] = None,
+        pred_model: Optional[str] = None,
+        regression_points: Optional[list] = None,
     ) -> None:
+        self.problem_type = problem_type
         self._nh_model = None
         self.n_folds = n_folds
         self.random_state = random_state
         self.preserve_target = preserve_target
+
+        if problem_type == "regression":
+            assert regression_points is not None
+            assert isinstance(regression_points, list)
+            assert len(regression_points) > 1
+            self.regression_points = regression_points
+
+        if pred_model is None:
+            if problem_type == "binary_classification":
+                pred_model = "svm"
+            elif problem_type == "regression":
+                pred_model = "svr"
+        
+        if stack_model is None:
+            if problem_type == "binary_classification":
+                stack_model = "logit"
+            elif problem_type == "regression":
+                stack_model = "ridge"
+
         if isinstance(stack_model, str):
             _, stack_model = julearn.api.prepare_model(
-                stack_model, "binary_classification"
+                stack_model, problem_type
             )
         self.stack_model: ClassifierMixin = stack_model  # type: ignore
         if isinstance(pred_model, str):
             _, pred_model = julearn.api.prepare_model(
-                pred_model, "binary_classification"
+                pred_model, problem_type
             )
-        self.pred_model: ClassifierMixin = pred_model  # type: ignore
+        if problem_type == "binary_classification":
+            self.pred_model: ClassifierMixin = pred_model  # type: ignore
+        elif problem_type == "regression":
+            self.pred_model: RegressorMixin = pred_model
         #self.pred_model.set_params(probability=True)
 
     def fit(
@@ -280,7 +305,20 @@ class JuHaCV:
         """
         _check_consistency(X, sites, y, covars, need_y=True)
 
-        self._classes = np.sort(np.unique(y))
+        if self.problem_type == "binary_classification":
+            self._classes = np.sort(np.unique(y))
+        else:
+            self._classes = len(self.regression_points)
+            if np.min(y) > np.min(self.regression_points):
+                print("Warning: min(y) > min(regression_points)"
+                    f"Minimum value of y is {np.min(y)} but "
+                    f"minimum value of regression points is "
+                    f"{np.min(self.regression_points)}")
+            if np.max(y) < np.max(self.regression_points):
+                print("Warning: max(y) < max(regression_points)"
+                    f"Maximum value of y is {np.max(y)} but "
+                    f"maximum value of regression points is "
+                    f"{np.max(self.regression_points)}")
         n_classes = len(self._classes)
 
         cv = KFold(
@@ -292,12 +330,10 @@ class JuHaCV:
         cv_preds = np.ones((X.shape[0], n_classes)) * -1
         for i_fold, (train_index, test_index) in enumerate(cv.split(X)):
             X_train, sites_train, y_train, covars_train = subset_data(
-                train_index, X, sites, y, covars
-            )
+                train_index, X, sites, y, covars)
 
             X_test, sites_test, y_test, covars_test = subset_data(
-                test_index, X, sites, y, covars
-            )
+                test_index, X, sites, y, covars)
 
             # harmonize train data
             t_model = JuHa(preserve_target=self.preserve_target)
@@ -316,10 +352,12 @@ class JuHaCV:
                 X_test_harmonized = t_model.transform(
                     X_test, t_y_test, sites_test, covars_test  # type: ignore
                 )
-                cv_preds[
-                    test_index, i_class
-                ] = self.pred_model.predict_proba(  # type: ignore
-                    X_test_harmonized)[:,0]
+                if self.problem_type == "binary_classification":
+                    cv_preds[test_index, i_class] = \
+                    self.pred_model.predict_proba(X_test_harmonized)[:,0]
+                else:
+                    cv_preds[test_index, i_class] = \
+                    self.pred_model.predict(X_test_harmonized)
 
         # Train the harmonization model on all the data
         self._nh_model = JuHa(preserve_target=self.preserve_target)
@@ -398,11 +436,17 @@ class JuHaCV:
         for i_cls, t_cls in enumerate(self._classes):
             t_y = np.ones(X.shape[0], dtype=int) * t_cls
             t_X_harmonized = self._nh_model.transform(X, t_y, sites, covars)
-            pred_cls = self.pred_model.predict_proba(  # type: ignore
+            if self.problem_type == "binary_classification":
+                pred_cls = self.pred_model.predict_proba(  # type: ignore
                 t_X_harmonized)
-            preds[:, i_cls] = pred_cls[:, 0]
-        pred_y_proba = self.stack_model.predict_proba(preds)  # type: ignore
-        self._pred_y_proba = pred_y_proba
+                preds[:, i_cls] = pred_cls[:, 0]
+            else:
+                preds[:, i_cls] = self.pred_model.predict(  # type: ignore
+                t_X_harmonized)
+        
+        if self.problem_type == "binary_classification":
+            pred_y_proba = self.stack_model.predict_proba(preds)  # type: ignore
+            self._pred_y_proba = pred_y_proba
         pred_y = self.stack_model.predict(preds)  # type: ignore
         self._pred_y = pred_y
         X_harmonized = self._nh_model.transform(X, pred_y, sites, covars)
