@@ -442,16 +442,7 @@ class JuHaCV:
 
         _check_consistency(X, sites, covars=covars)
 
-        preds = np.ones((X.shape[0], len(self._classes))) * -1
-        for i_cls, t_cls in enumerate(self._classes):
-            t_y = np.ones(X.shape[0], dtype=int) * t_cls
-            t_X_harmonized = self._nh_model.transform(X, t_y, sites, covars)
-            if self.problem_type == "binary_classification":
-                preds[:, i_cls] = self.pred_model.predict_proba(  # type: ignore
-                t_X_harmonized)[:, 0]
-            else:
-                preds[:, i_cls] = self.pred_model.predict(  # type: ignore
-                t_X_harmonized)
+        preds = self._transform_predict(X, sites, covars)
         
         if self.problem_type == "binary_classification":
             self.pred_y_proba = self.stack_model.predict_proba(preds)  # type: ignore
@@ -459,3 +450,16 @@ class JuHaCV:
         self._pred_y = pred_y
         X_harmonized = self._nh_model.transform(X, pred_y, sites, covars)
         return X_harmonized
+
+    def _transform_predict(self, X, sites, covars):
+        preds = np.ones((X.shape[0], len(self._classes))) * -1
+        for i_cls, t_cls in enumerate(self._classes):
+            t_y = np.ones(X.shape[0], dtype=int) * t_cls
+            t_X_harmonized = self._nh_model.transform(X, t_y, sites, covars)
+            if self.problem_type == "binary_classification":
+                preds[:, i_cls] = self.pred_model.predict_proba(  # type: ignore
+                    t_X_harmonized)[:, 0]
+            else:
+                preds[:, i_cls] = self.pred_model.predict(  # type: ignore
+                    t_X_harmonized)
+        return preds
