@@ -4,7 +4,7 @@ import neuroHarmonize as nh
 import pandas as pd
 import numpy as np
 import numpy.typing as npt
-from sklearn.base import ClassifierMixin
+from sklearn.base import ClassifierMixin, RegressorMixin
 from sklearn.model_selection import KFold
 from typing import Optional, Tuple, Union
 import julearn
@@ -210,45 +210,7 @@ class JuHa:
         X_harmonized = nh.harmonizationApply(X, df_covars, self._nh_model)
         return X_harmonized  # type: ignore
 
-    # def transform_target_pretend(
-    #     self, data, sites, targets=None, covars=None, index=None
-    # ):
-    #     """
-    #     data: numpy array of shape [N_samples x N_features]
-    #     sites: numpy array of shape [N_samples]
-    #     target: numpy array of shape [N_samples]
-    #     covars: pandas dataframe of shape [N_samples x N_covars]
-    #     """
-    #     if self.model is None:
-    #         raise Exception("Model not fitted")
 
-    #     if self.preserve_target is False:
-    #         raise Exception("Model not fitted with target")
-
-    #     data, sites, target, covars = self.subset(
-    #         data, sites, target=None, covars=covars, index=index
-    #     )
-
-    #     if targets is None:
-    #         targets = self.targets
-
-    #     covarsDF = pd.DataFrame({"SITE": sites})
-    #     out = {}
-    #     for target in targets:
-    #         covarsDF["Class"] = [target] * len(sites)
-
-    #         if self.expect_covars:
-    #             if covars is None:
-    #                 raise Exception("Model expects covariates")
-
-    #             assert np.all(np.array(list(covars.columns)) == self.covars)
-    #             covarsDF = covarsDF.append(covars)
-    #         out[target] = nh.harmonizationApply(data, covarsDF, self.model)
-
-    #     return out
-
-
-#
 class JuHaCV:
     """Do JuHa in a CV consistent manner.
 
