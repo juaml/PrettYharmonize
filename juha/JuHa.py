@@ -82,10 +82,12 @@ class JuHa:
         harmonization. The default is True.
     """
 
-    def __init__(self, preserve_target=True) -> None:
+    def __init__(self, preserve_target=True, nh_model=None) -> None:
         """Initialize the class."""
         self.preserve_target = preserve_target
         self._nh_model = None
+        if nh_model is not None:
+            self._nh_model = nh_model
 
     def fit(
         self,
@@ -267,7 +269,7 @@ class JuHaCV:
             if problem_type == "binary_classification":
                 stack_model = "logit"
             elif problem_type == "regression":
-                stack_model = "svm"
+                stack_model = "gauss"
 
         if isinstance(stack_model, str):
             _, stack_model = julearn.api.prepare_model(
@@ -292,6 +294,7 @@ class JuHaCV:
         sites: npt.NDArray,
         covars: Optional[npt.NDArray] = None,
         return_data: bool = False,
+        return_cv_harmonized: bool = False,
     ) -> Union[npt.NDArray, "JuHaCV"]:
         """Learn the leak-free harmonization model
 
@@ -345,12 +348,16 @@ class JuHaCV:
         n_classes = len(self._classes)
         if self.problem_type == "regression" and self.regression_search:
             n_classes = 1    
+        
+        if return_cv_harmonized:
+            X_cv_harmonized = np.zeros(X.shape)
+        
         cv_preds = np.ones((X.shape[0], n_classes)) * -1
         for i_fold, (train_index, test_index) in enumerate(cv.split(X)):
             X_train, sites_train, y_train, covars_train = subset_data(
                 train_index, X, sites, y, covars)
 
-            X_test, sites_test, _, covars_test = subset_data(
+            X_test, sites_test, y_test, covars_test = subset_data(
                 test_index, X, sites, y, covars)
 
             # harmonize train data
@@ -369,6 +376,10 @@ class JuHaCV:
             preds = self._get_predictions(X_test, sites_test, covars_test, 
                         t_nh_model, t_pred_model)
             cv_preds[test_index,:] = preds
+
+            if return_cv_harmonized:                
+                X_cv_harmonized[test_index,:] = t_nh_model.transform(
+                    X_test, y_test, sites_test, covars_test)
             
 
         # Train the harmonization model on all the data
@@ -382,6 +393,8 @@ class JuHaCV:
         self.stack_model.fit(cv_preds, y)  # type: ignore
 
         if return_data:
+            if return_cv_harmonized:
+                return X_cv_harmonized            
             return X_harmonized
         return self
 
@@ -392,6 +405,7 @@ class JuHaCV:
         y: npt.NDArray,
         sites: npt.NDArray,
         covars: Optional[npt.NDArray] = None,
+        return_cv_harmonized = False,
     ) -> npt.NDArray:
         """Learn the leak-free harmonization model and apply it to the data.
         Note that this is not the same as `transform` because the model is
@@ -414,7 +428,9 @@ class JuHaCV:
         X_harmonized: numpy array of shape [N_samples x N_features]
             the harmonized data
         """
-        X_harmonized = self.fit(X, y, sites, covars, return_data=True)
+        X_harmonized = self.fit(X, y, sites, covars,
+                                return_data = True,
+                                return_cv_harmonized = return_cv_harmonized)
         return X_harmonized
 
     def transform(
