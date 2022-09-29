@@ -1,10 +1,11 @@
 # %%
 # Imports
+from lzma import PRESET_DEFAULT
 import neuroHarmonize as nh
 import pandas as pd
 import numpy as np
 import numpy.typing as npt
-from sklearn.base import ClassifierMixin, RegressorMixin
+from sklearn.base import ClassifierMixin, RegressorMixin, clone
 from sklearn.model_selection import KFold
 from typing import Optional, Tuple, Union
 import julearn
@@ -19,6 +20,7 @@ def subset_data(
 ) -> Tuple[
     npt.NDArray, npt.NDArray, Optional[npt.NDArray], Optional[npt.NDArray]
 ]:
+    assert not isinstance(index, int)
     _X = X[index]
     _sites = sites[index]
     _y = None
@@ -40,7 +42,7 @@ def _check_consistency(
     """Check that the dimensions of the data are consistent."""
     assert (
         X.shape[0] == sites.shape[0]
-    ), "X and sites must have the same number of samples"
+    ), f"X and sites must have the same number of samples: {X.shape[0]}, {sites.shape[0]}"
 
     assert need_y is False or y is not None, "y must be provided"
     if y is not None:
@@ -240,9 +242,14 @@ class JuHaCV:
         stack_model: Optional[str] = None,
         pred_model: Optional[str] = None,
         regression_points: Optional[list] = None,
+        regression_search: Optional[bool] = False,
+        regression_search_tol: Optional[float] = None,
     ) -> None:
         """Initialize the class."""
         assert problem_type in ["binary_classification", "regression"]
+
+        if problem_type=='regression' and regression_search:
+            assert regression_search_tol is not None
         
         self.problem_type = problem_type
         self._nh_model = None
@@ -250,6 +257,8 @@ class JuHaCV:
         self.random_state = random_state
         self.preserve_target = preserve_target
         self.regression_points = regression_points
+        self.regression_search = regression_search
+        self.regression_search_tol = regression_search_tol
 
         if pred_model is None:
             pred_model = "svm"
@@ -325,8 +334,7 @@ class JuHaCV:
                 print("Warning: max(y) < max(regression_points)"
                     f"Maximum value of y is {np.max(y)} but "
                     f"maximum value of regression points is "
-                    f"{np.max(self.regression_points)}")
-        n_classes = len(self._classes)
+                    f"{np.max(self.regression_points)}")        
 
         cv = KFold(
             n_splits=self.n_folds,
@@ -334,40 +342,34 @@ class JuHaCV:
             random_state=self.random_state,
         )
         # collect predictions over the whole data
+        n_classes = len(self._classes)
+        if self.problem_type == "regression" and self.regression_search:
+            n_classes = 1    
         cv_preds = np.ones((X.shape[0], n_classes)) * -1
         for i_fold, (train_index, test_index) in enumerate(cv.split(X)):
             X_train, sites_train, y_train, covars_train = subset_data(
                 train_index, X, sites, y, covars)
 
-            X_test, sites_test, y_test, covars_test = subset_data(
+            X_test, sites_test, _, covars_test = subset_data(
                 test_index, X, sites, y, covars)
 
             # harmonize train data
-            t_model = JuHa(preserve_target=self.preserve_target)
+            t_nh_model = JuHa(preserve_target=self.preserve_target)
 
             # Learn how to harmonize the train data
-            t_X_harmonized = t_model.fit_transform(
+            t_X_harmonized = t_nh_model.fit_transform(
                 X_train, y_train, sites_train, covars_train)  # type: ignore
             _check_harmonization_results(X_train, t_X_harmonized,
             sites_train, y_train)
 
             # Learn how to predict y from the harmonized train data
-            self.pred_model.fit(t_X_harmonized, y_train)  # type: ignore
-
-            # For each class, predict the probability of the test data if
-            # it was harmonized as belonging to that class
-            for i_class, t_class in enumerate(self._classes):
-                t_y_test = np.ones(len(y_test), dtype=int) * t_class
-                X_test_harmonized = t_model.transform(
-                    X_test, t_y_test, sites_test, covars_test)
-                _check_harmonization_results(X_test, X_test_harmonized,
-                sites_test, t_y_test)
-                if self.problem_type == "binary_classification":
-                    cv_preds[test_index, i_class] = \
-                    self.pred_model.predict_proba(X_test_harmonized)[:, 0]
-                else:
-                    cv_preds[test_index, i_class] = \
-                    self.pred_model.predict(X_test_harmonized)
+            t_pred_model = clone(self.pred_model)
+            t_pred_model.fit(t_X_harmonized, y_train)  # type: ignore
+            # Get predictions in CV
+            preds = self._get_predictions(X_test, sites_test, covars_test, 
+                        t_nh_model, t_pred_model)
+            cv_preds[test_index,:] = preds
+            
 
         # Train the harmonization model on all the data
         self._nh_model = JuHa(preserve_target=self.preserve_target)
@@ -442,7 +444,7 @@ class JuHaCV:
 
         _check_consistency(X, sites, covars=covars)
 
-        preds = self._transform_predict(X, sites, covars)
+        preds = self._get_predictions(X, sites, covars, self._nh_model, self.pred_model)
         
         if self.problem_type == "binary_classification":
             self.pred_y_proba = self.stack_model.predict_proba(preds)  # type: ignore
@@ -451,15 +453,52 @@ class JuHaCV:
         X_harmonized = self._nh_model.transform(X, pred_y, sites, covars)
         return X_harmonized
 
-    def _transform_predict(self, X, sites, covars):
+    def _get_predictions(self, X, sites, covars, nh_model, pred_model):
+        if self.regression_search and self.problem_type=='regression':
+            preds = self._predict_search(X, sites, covars, nh_model, pred_model)
+            return preds
+        
         preds = np.ones((X.shape[0], len(self._classes))) * -1
         for i_cls, t_cls in enumerate(self._classes):
             t_y = np.ones(X.shape[0], dtype=int) * t_cls
-            t_X_harmonized = self._nh_model.transform(X, t_y, sites, covars)
+            t_X_harmonized = nh_model.transform(X, t_y, sites, covars)
             if self.problem_type == "binary_classification":
-                preds[:, i_cls] = self.pred_model.predict_proba(  # type: ignore
+                preds[:, i_cls] = pred_model.predict_proba(  # type: ignore
                     t_X_harmonized)[:, 0]
             else:
-                preds[:, i_cls] = self.pred_model.predict(  # type: ignore
+                preds[:, i_cls] = pred_model.predict(  # type: ignore
                     t_X_harmonized)
+        return preds
+
+    def _predict_search(self, X, sites, covars, nh_model, pred_model):
+        assert self.problem_type == 'regression'
+        y = np.array([0]*len(sites))
+        preds = np.ones((X.shape[0], 1)) * -1
+        for i_X in range(X.shape[0]):
+            t_X, t_sites, _, t_covars = subset_data(
+                [i_X], X, sites, y, covars)
+            cur1, cur2 = np.array([self._y_min]), np.array([self._y_max])            
+            ntries = 0
+            cur_dif = np.Inf
+            while cur_dif>self.regression_search_tol and ntries<20:
+                t_X_harmonized = nh_model.transform(t_X, cur1, t_sites, t_covars)
+                pred1 = pred_model.predict(t_X_harmonized)
+                t_X_harmonized = nh_model.transform(t_X, cur2, t_sites, t_covars)
+                pred2 = pred_model.predict(t_X_harmonized)
+                d1 = np.abs(cur1-pred1)
+                d2 = np.abs(cur2-pred2)
+                if d1 < d2:
+                    cur_dif = d1
+                    cur2 = (cur1+cur2)/2
+                else:
+                    cur_dif = d2
+                    cur1 = (cur1+cur2)/2
+                ntries += 1
+            
+            if d1 < d2:
+                 preds[i_X] = pred1[0]
+            else:
+                preds[i_X] = pred2[0]
+            
+            #print(f"{ntries}-{preds[i_X]}: {cur1}-{pred1} and {cur2}-{pred2}")
         return preds
