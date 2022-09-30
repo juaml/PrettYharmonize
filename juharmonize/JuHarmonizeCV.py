@@ -29,7 +29,7 @@ class JuHarmonizeCV:
     pred_model: str
         The learning algorithm to use for the prediction step. Must be a valid
         string for `julearn.estimators.get_model`
-    prevent_overfitting: bool
+    use_cv_test_transforms: bool
         If True, the harmonization will be done using the K-fold CV. This will
         generate an out-of-sample harmonized X that is less prone to
         overfitting.
@@ -53,7 +53,7 @@ class JuHarmonizeCV:
         random_state: Optional[int] = None,
         stack_model: Optional[str] = None,
         pred_model: Optional[str] = None,
-        prevent_overfitting: bool = False,
+        use_cv_test_transforms: bool = False,
         regression_points: Optional[list] = None,
         regression_search: Optional[bool] = False,
         regression_search_tol: float = 0,
@@ -71,7 +71,7 @@ class JuHarmonizeCV:
         self.n_folds = n_folds
         self.random_state = random_state
         self.preserve_target = preserve_target
-        self.prevent_overfitting = prevent_overfitting
+        self.use_cv_test_transforms = use_cv_test_transforms
         self.regression_points = regression_points
         self.regression_search = regression_search
         self.regression_search_tol = regression_search_tol
@@ -165,7 +165,7 @@ class JuHarmonizeCV:
         # Initialize the models and results variables
         self._nh_model = JuHarmonize(preserve_target=self.preserve_target)
 
-        if self.prevent_overfitting:
+        if self.use_cv_test_transforms:
             X_cv_harmonized = np.zeros(X.shape)
 
         cv_preds = np.ones((X.shape[0], n_classes)) * -1
@@ -189,14 +189,14 @@ class JuHarmonizeCV:
             preds = self._get_predictions(X_test, sites_test, covars_test)
             cv_preds[test_index, :] = preds
 
-            if self.prevent_overfitting:
+            if self.use_cv_test_transforms:
                 t_cv_harm = self._nh_model.transform(
                     X_test, y_test, sites_test, covars_test)  # type: ignore
                 X_cv_harmonized[test_index, :] = t_cv_harm  # type: ignore
 
         # Train the harmonization model on all the data
         X_harmonized = self._nh_model.fit_transform(X, y, sites, covars)
-        if self.prevent_overfitting:
+        if self.use_cv_test_transforms:
             X_harmonized = X_cv_harmonized  # type: ignore
 
         # Train the prediction model on all the harmonized data
