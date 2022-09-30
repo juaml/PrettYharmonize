@@ -385,6 +385,8 @@ class JuHaCV:
         # Train the harmonization model on all the data
         self._nh_model = JuHa(preserve_target=self.preserve_target)
         X_harmonized = self._nh_model.fit_transform(X, y, sites, covars)
+        if return_cv_harmonized:
+            X_harmonized = X_cv_harmonized
 
         # Train the prediction model on all the harmonized data
         self.pred_model.fit(X_harmonized, y)  # type: ignore
@@ -392,9 +394,7 @@ class JuHaCV:
         # train the stack model that uses the predictions from CV
         self.stack_model.fit(cv_preds, y)  # type: ignore
 
-        if return_data:
-            if return_cv_harmonized:
-                return X_cv_harmonized            
+        if return_data:            
             return X_harmonized
         return self
 
