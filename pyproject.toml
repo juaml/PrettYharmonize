@@ -7,7 +7,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "JuHa"
+name = "JuHarmonize"
 description = "JUelich Harmonization"
 readme = "README.md"
 requires-python = ">=3.8"
