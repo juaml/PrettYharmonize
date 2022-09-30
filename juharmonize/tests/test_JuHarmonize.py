@@ -11,11 +11,11 @@ from seaborn import load_dataset
 # from sklearn.metrics import accuracy_score
 # import matplotlib.pyplot as plt
 
-from juha.JuHa import JuHa
+from juharmonize import JuHarmonize
 
 
-def test_Juha() -> None:
-    """Test Juha Class"""
+def test_Juharmonize() -> None:
+    """Test Juharmonize Class"""
     # Load data
     df_iris = load_dataset('iris')
 
@@ -26,27 +26,27 @@ def test_Juha() -> None:
     target = df_iris['species'].isin(['versicolor']).astype(int)
     target = target.to_numpy()
     # Get Classes
-    classes = np.unique(target)
+    # classes = np.unique(target)
     # Get number of classe
-    n_classes = len(classes)
+    # n_classes = len(classes)
 
     # Data must be a numpy array [N_samples x N_Features]
     data = df_iris[['sepal_length', 'sepal_width',
                     'petal_length', 'petal_width']].values
 
     # Get samples and features form the data
-    num_samples, num_features = data.shape
+    num_samples, _ = data.shape
 
     # generate random sites
     sites = np.random.randint(low=0, high=2, size=num_samples)
 
     # test Harmonization implementation
-    harm_model = JuHa()
-    assert harm_model._nh_model is None
-    harm_data_ft = harm_model.fit_transform(data, sites, target)
-    assert harm_model._nh_model is not None
-    assert harm_model._need_covars is False
-    harm_data_t = harm_model.transform(data, sites, target)
+    juharm_model = JuHarmonize()
+    assert juharm_model._nh_model is None
+    harm_data_ft = juharm_model.fit_transform(data, target, sites)
+    assert juharm_model._nh_model is not None
+    assert juharm_model._need_covars is False
+    harm_data_t = juharm_model.transform(data, target, sites)
     assert_array_equal(harm_data_ft, harm_data_t)
 
 # # test Harmonization in CV

@@ -133,4 +133,4 @@ cython_debug/
 .DS_store
 
 # Versioning
-julearn/_version.py
+juharmonize/_version.py

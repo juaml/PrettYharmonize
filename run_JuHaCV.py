@@ -5,7 +5,8 @@ from numpy.testing import assert_array_equal
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
-from juha.JuHa import JuHa, JuHaCV, subset_data
+from juharmonize.JuHarmonize import JuHarmonize, JuHarmonizeCV
+from juharmonize.utils import subset_data
 from sklearn.datasets import load_breast_cancer
 from sklearn.svm import SVC
 
@@ -22,9 +23,9 @@ num_samples, num_features = X.shape
 sites = np.random.choice([1, 2], num_samples)
 print('Sites: ', np.unique(sites))
 
-model_full = JuHa()
-model_harm = JuHa()
-model_harm_cv = JuHaCV()
+model_full = JuHarmonize()
+model_harm = JuHarmonize()
+model_harm_cv = JuHarmonizeCV()
 
 pred_model_cheat = SVC()
 pred_model_leak = SVC()
@@ -55,7 +56,7 @@ for i_fold, (train_index, test_index) in enumerate(kf.split(X)):
     X_train_harm = model_harm.fit_transform(X_train, y_train, sites_train, covars_train)
     X_test_harm = model_harm.transform(X_test, y_test, sites_test, covars_test)
 
-    # Harmonize X using JuhaCV (no leak)
+    # Harmonize X using JuHarmonizeCV (no leak)
     X_train_harm_cv = model_harm_cv.fit_transform(X_train, y_train, sites_train, covars_train)
     X_test_harm_cv = model_harm_cv.transform(X_test, sites_test, covars_test)
 

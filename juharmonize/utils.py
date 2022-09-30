@@ -1,10 +1,10 @@
 import numpy as np
 import numpy.typing as npt
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union, List
 
 
 def subset_data(
-    index: npt.NDArray,
+    index: Union[npt.NDArray, List[int]],
     X: npt.NDArray,
     sites: npt.NDArray,
     y: Optional[npt.NDArray] = None,
@@ -53,12 +53,13 @@ def check_harmonization_results(
     X: npt.NDArray,
     harmonized_X: npt.NDArray,
     sites: npt.NDArray,
-    y: npt.NDArray,
+    y: Optional[npt.NDArray] = None,
 ) -> None:
     if np.isnan(harmonized_X).any() or np.isinf(harmonized_X).any():
         print("Warning: NaNs or Infs in harmonized data")
         print(f"Sites: {np.unique(sites)}")
-        print(f"Targets: {np.unique(y)}")
+        if y is not None:
+            print(f"Targets: {np.unique(y)}")
         data_colvar = np.var(X, axis=0)
         print(
             f"Data columns with low variance: {np.sum(data_colvar < 1e-6)}",
