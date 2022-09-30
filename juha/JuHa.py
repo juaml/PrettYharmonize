@@ -1,74 +1,15 @@
 # %%
 # Imports
-from lzma import PRESET_DEFAULT
 import neuroHarmonize as nh
 import pandas as pd
 import numpy as np
 import numpy.typing as npt
 from sklearn.base import ClassifierMixin, RegressorMixin, clone
 from sklearn.model_selection import KFold
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 import julearn
 
-
-def subset_data(
-    index: npt.NDArray,
-    X: npt.NDArray,
-    sites: npt.NDArray,
-    y: Optional[npt.NDArray] = None,
-    covars: Optional[npt.NDArray] = None,
-) -> Tuple[
-    npt.NDArray, npt.NDArray, Optional[npt.NDArray], Optional[npt.NDArray]
-]:
-    assert not isinstance(index, int)
-    _X = X[index]
-    _sites = sites[index]
-    _y = None
-    _covars = None
-    if y is not None:
-        _y = y[index]
-    if covars is not None:
-        _covars = covars[index]
-    return _X, _sites, _y, _covars
-
-
-def _check_consistency(
-    X: npt.NDArray,
-    sites: npt.NDArray,
-    y: Optional[npt.NDArray] = None,
-    covars: Optional[npt.NDArray] = None,
-    need_y: bool = False,
-) -> None:
-    """Check that the dimensions of the data are consistent."""
-    assert (
-        X.shape[0] == sites.shape[0]
-    ), f"X and sites must have the same number of samples: {X.shape[0]}, {sites.shape[0]}"
-
-    assert need_y is False or y is not None, "y must be provided"
-    if y is not None:
-        assert (
-            X.shape[0] == y.shape[0]
-        ), "X and y must have the same number of samples"
-
-    if covars is not None:
-        assert (
-            covars.shape[0] == X.shape[0]
-        ), "covars and X must have the same number of samples"
-
-
-def _check_harmonization_results(
-    X: npt.NDArray,
-    harmonized_X: npt.NDArray,
-    sites: npt.NDArray,
-    y: npt.NDArray,
-) -> None:
-    if np.isnan(harmonized_X).any() or np.isinf(harmonized_X).any():
-        print("Warning: NaNs or Infs in harmonized data")
-        print(f"Sites: {np.unique(sites)}")
-        print(f"Targets: {np.unique(y)}")
-        data_colvar = np.var(X, axis=0)
-        print(f"Data columns with low variance: {np.sum(data_colvar < 1e-6)}",)
-        raise RuntimeError("Harmonization of trainig data failed in CV!")
+from .utils import subset_data, check_consistency, check_harmonization_results
 
 
 class JuHa:
@@ -110,7 +51,7 @@ class JuHa:
         covars: numpy array of shape [N_samples, N_covars]
             The covariates to preserve from each sample
         """
-        _check_consistency(X, sites, y, covars)
+        check_consistency(X, sites, y, covars)
 
         df_covars = pd.DataFrame({"SITE": sites})
         if self.preserve_target:
@@ -189,7 +130,7 @@ class JuHa:
         """
         if self._nh_model is None:
             raise RuntimeError("Model not fitted")
-        _check_consistency(X, sites, y, covars)
+        check_consistency(X, sites, y, covars)
         df_covars = pd.DataFrame({"SITE": sites})
         if self.preserve_target:
             if y is None:
@@ -285,7 +226,6 @@ class JuHaCV:
         elif problem_type == "regression":
             self.pred_model: RegressorMixin = pred_model
             self.stack_model: RegressorMixin = stack_model
-        #self.pred_model.set_params(probability=True)
 
     def fit(
         self,
@@ -311,7 +251,7 @@ class JuHaCV:
         return_data: bool
             If True, the harmonized data will be returned
         """
-        _check_consistency(X, sites, y, covars, need_y=True)
+        check_consistency(X, sites, y, covars, need_y=True)
 
         if self.problem_type == "binary_classification":
             self._classes = np.sort(np.unique(y))
@@ -366,7 +306,7 @@ class JuHaCV:
             # Learn how to harmonize the train data
             t_X_harmonized = t_nh_model.fit_transform(
                 X_train, y_train, sites_train, covars_train)  # type: ignore
-            _check_harmonization_results(X_train, t_X_harmonized,
+            check_harmonization_results(X_train, t_X_harmonized,
             sites_train, y_train)
 
             # Learn how to predict y from the harmonized train data
@@ -460,7 +400,7 @@ class JuHaCV:
 
         _check_consistency(X, sites, covars=covars)
 
-        preds = self._get_predictions(X, sites, covars, self._nh_model, self.pred_model)
+        preds = self._get_predictions(X, sites, covars)
         
         if self.problem_type == "binary_classification":
             self.pred_y_proba = self.stack_model.predict_proba(preds)  # type: ignore
@@ -469,38 +409,40 @@ class JuHaCV:
         X_harmonized = self._nh_model.transform(X, pred_y, sites, covars)
         return X_harmonized
 
-    def _get_predictions(self, X, sites, covars, nh_model, pred_model):
-        if self.regression_search and self.problem_type=='regression':
-            preds = self._predict_search(X, sites, covars, nh_model, pred_model)
-            return preds
-        
+    def _get_predictions(self, X, sites, covars):
+        if self.regression_search and self.problem_type == 'regression':
+            preds = self._predict_search(X, sites, covars)
+        else:
+            preds = self._predict_classes(X, sites, covars)
+        return preds
+
+    def _predict_classes(self, X, sites, covars):
         preds = np.ones((X.shape[0], len(self._classes))) * -1
         for i_cls, t_cls in enumerate(self._classes):
             t_y = np.ones(X.shape[0], dtype=int) * t_cls
-            t_X_harmonized = nh_model.transform(X, t_y, sites, covars)
+            t_X_harmonized = self._nh_model.transform(X, t_y, sites, covars)
             if self.problem_type == "binary_classification":
-                preds[:, i_cls] = pred_model.predict_proba(  # type: ignore
+                preds[:, i_cls] = self.pred_model.predict_proba(  # type: ignore
                     t_X_harmonized)[:, 0]
             else:
-                preds[:, i_cls] = pred_model.predict(  # type: ignore
+                preds[:, i_cls] = self.pred_model.predict(  # type: ignore
                     t_X_harmonized)
         return preds
 
-    def _predict_search(self, X, sites, covars, nh_model, pred_model):
+    def _predict_search(self, X, sites, covars):
         assert self.problem_type == 'regression'
         y = np.array([0]*len(sites))
         preds = np.ones((X.shape[0], 1)) * -1
         for i_X in range(X.shape[0]):
-            t_X, t_sites, _, t_covars = subset_data(
-                [i_X], X, sites, y, covars)
-            cur1, cur2 = np.array([self._y_min]), np.array([self._y_max])            
+            t_X, t_sites, _, t_covars = subset_data([i_X], X, sites, y, covars)
+            cur1, cur2 = np.array([self._y_min]), np.array([self._y_max])
             ntries = 0
             cur_dif = np.Inf
-            while cur_dif>self.regression_search_tol and ntries<20:
-                t_X_harmonized = nh_model.transform(t_X, cur1, t_sites, t_covars)
-                pred1 = pred_model.predict(t_X_harmonized)
-                t_X_harmonized = nh_model.transform(t_X, cur2, t_sites, t_covars)
-                pred2 = pred_model.predict(t_X_harmonized)
+            while cur_dif > self.regression_search_tol and ntries < 20:
+                t_X_harmonized = self._nh_model.transform(t_X, cur1, t_sites, t_covars)
+                pred1 = self.pred_model.predict(t_X_harmonized)
+                t_X_harmonized = self._nh_model.transform(t_X, cur2, t_sites, t_covars)
+                pred2 = self.pred_model.predict(t_X_harmonized)
                 d1 = np.abs(cur1-pred1)
                 d2 = np.abs(cur2-pred2)
                 if d1 < d2:
@@ -515,6 +457,4 @@ class JuHaCV:
                  preds[i_X] = pred1[0]
             else:
                 preds[i_X] = pred2[0]
-            
-            #print(f"{ntries}-{preds[i_X]}: {cur1}-{pred1} and {cur2}-{pred2}")
         return preds
