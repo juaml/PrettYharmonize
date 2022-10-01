@@ -57,6 +57,7 @@ class JuHarmonizeCV:
         regression_points: Optional[list] = None,
         regression_search: Optional[bool] = False,
         regression_search_tol: float = 0,
+        predict_ignore_site: Optional[bool] = False, 
     ) -> None:
         """Initialize the class."""
         assert problem_type in ["binary_classification", "regression"]
@@ -75,6 +76,7 @@ class JuHarmonizeCV:
         self.regression_points = regression_points
         self.regression_search = regression_search
         self.regression_search_tol = regression_search_tol
+        self.predict_ignore_site = predict_ignore_site
 
         if pred_model is None:
             pred_model = "svm"
@@ -123,6 +125,8 @@ class JuHarmonizeCV:
         """
         check_consistency(X, sites, y, covars, need_y=True)
 
+        self._sites = np.sort(np.unique(sites))
+
         if self.problem_type == "binary_classification":
             self._classes = np.sort(np.unique(y))
             assert len(self._classes) == 2
@@ -168,7 +172,7 @@ class JuHarmonizeCV:
         if self.use_cv_test_transforms:
             X_cv_harmonized = np.zeros(X.shape)
 
-        cv_preds = np.ones((X.shape[0], n_classes)) * -1
+        cv_preds = None
         for _, (train_index, test_index) in enumerate(cv.split(X)):
             X_train, sites_train, y_train, covars_train = subset_data(
                 train_index, X, sites, y, covars)
@@ -187,6 +191,8 @@ class JuHarmonizeCV:
 
             # Get predictions in CV
             preds = self._get_predictions(X_test, sites_test, covars_test)
+            if cv_preds is None:
+                cv_preds = np.ones((X.shape[0], preds.shape[1])) * -1
             cv_preds[test_index, :] = preds
 
             if self.use_cv_test_transforms:
@@ -308,18 +314,29 @@ class JuHarmonizeCV:
         return preds
 
     def _predict_classes(self, X, sites, covars):
-        preds = np.ones((X.shape[0], len(self._classes))) * -1
-        for i_cls, t_cls in enumerate(self._classes):
-            t_y = np.ones(X.shape[0], dtype=int) * t_cls
-            t_X_harmonized = self._nh_model.transform(  # type: ignore
-                X, t_y, sites, covars)
-            if self.problem_type == "binary_classification":
-                preds[:, i_cls] = \
-                    self.pred_model.predict_proba(   # type: ignore
-                        t_X_harmonized)[:, 0]
+        p_sites = [None]
+        if self.predict_ignore_site:
+            p_sites = self._sites
+        
+        preds = None
+        for i_site, a_site in enumerate(p_sites):
+            if a_site is None:
+                t_sites = sites
             else:
-                preds[:, i_cls] = self.pred_model.predict(  # type: ignore
-                    t_X_harmonized)
+                t_sites = np.array([a_site] * len(sites))
+            s_preds = np.ones((X.shape[0], len(self._classes))) * -1
+            for i_cls, t_cls in enumerate(self._classes):
+                t_y = np.ones(X.shape[0], dtype=int) * t_cls
+                t_X_harmonized = self._nh_model.transform(  # type: ignore
+                    X, t_y, t_sites, covars)
+                if self.problem_type == "binary_classification":
+                    s_preds[:, i_cls] = \
+                        self.pred_model.predict_proba(   # type: ignore
+                            t_X_harmonized)[:, 0]
+                else:
+                    s_preds[:, i_cls] = self.pred_model.predict(  # type: ignore
+                        t_X_harmonized)
+            preds = (np.hstack((preds, s_preds)) if (preds is not None) else s_preds)
         return preds
 
     def _predict_search(self, X, sites, covars):
