@@ -7,7 +7,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "JuHa"
+name = "JuHarmonize"
 description = "JUelich Harmonization"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -62,12 +62,12 @@ docs = [
 ################
 
 [tool.setuptools]
-packages = ["juha"]
+packages = ["juharmonize"]
 
 [tool.setuptools_scm]
 version_scheme = "python-simplified-semver"
 local_scheme = "no-local-version"
-write_to = "juha/_version.py"
+write_to = "juharmonize/_version.py"
 
 [tool.black]
 line-length = 79
