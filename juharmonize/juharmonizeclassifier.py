@@ -77,10 +77,9 @@ class JuHarmonizeClassifier(JuHarmonizeCV):
 
         self._classes = np.sort(np.unique(y))
 
-
     def _pred_model_predict(self, X: npt.NDArray) -> npt.NDArray:
         """Predict the target variable using the prediction model."""
-        return self.pred_model.predict_proba(X)
+        return self.pred_model.predict_proba(X)[:, 0]
 
     def predict_proba(
         self,

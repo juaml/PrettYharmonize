@@ -13,7 +13,6 @@ from sklearn.gaussian_process.kernels import (
     ConstantKernel,
 )
 from sklearn.ensemble import RandomForestRegressor as RFR
-import matplotlib.pyplot as plt
 from juharmonize import (
     JuHarmonize,
     JuHarmonizeRegressor,
@@ -33,7 +32,7 @@ n_high_var_feats = 5000
 sites_use = np.array(["CoRR", "1000Gehirne", "eNKI", "CamCAN"])
 sites_oos = np.array(["GOBS", "HCP"])
 
-file_name = "/home/kpatil/data/all_datasets_matched_age_GMV_v4raw.mat"
+file_name = "/data/project/harmonize/data/VBM/all_datasets_matched_age_GMV_v4raw.mat"
 data_struct = read_mat(file_name)
 
 X = data_struct["GLMFlags"]["dat"]

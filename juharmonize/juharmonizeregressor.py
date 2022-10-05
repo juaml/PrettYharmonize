@@ -80,6 +80,7 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
         sites: npt.NDArray,
         covars: Optional[npt.NDArray] = None,
     ) -> None:
+        self._sites = np.sort(np.unique(sites))
         self._y_min = min(y)
         self._y_max = max(y)
         if self.regression_points is None:
