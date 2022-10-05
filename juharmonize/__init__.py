@@ -7,3 +7,4 @@ from ._version import __version__
 from .juharmonize import JuHarmonize
 from .juharmonizeregressor import JuHarmonizeRegressor
 from .juharmonizeclassifier import JuHarmonizeClassifier
+from .juharmonizepredictor import JuHarmonizePredictor

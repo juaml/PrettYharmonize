@@ -65,3 +65,22 @@ def check_harmonization_results(
             f"Data columns with low variance: {np.sum(data_colvar < 1e-6)}",
         )
         raise RuntimeError("Harmonization of trainig data failed in CV!")
+
+
+def check_harmonize_predictor_consistency(
+    X: npt.NDArray,
+    Y: Union[npt.NDArray, None],
+    extra_vars: Optional[npt.NDArray] = None,
+) -> None:
+    if Y is not None:
+        if X.shape != Y.shape:
+            raise ValueError(
+                f"Both X ({X.shape}) and Y ({Y.shape}) should have the same "
+                "shape."
+            )
+    if extra_vars is not None:
+        if X.shape[0] != extra_vars.shape[0]:
+            raise ValueError(
+                f"X ({X.shape}) and extra_vars ({extra_vars.shape}) should "
+                "have the same number of samples."
+            )
