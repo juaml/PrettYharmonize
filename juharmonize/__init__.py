@@ -4,5 +4,6 @@
 # License: AGPL
 
 from ._version import __version__
-from .JuHarmonize import JuHarmonize
-from .JuHarmonizeCV import JuHarmonizeCV
+from .juharmonize import JuHarmonize
+from .juharmonizeregressor import JuHarmonizeRegressor
+from .juharmonizeclassifier import JuHarmonizeClassifier
