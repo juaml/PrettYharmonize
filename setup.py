@@ -1,4 +1,4 @@
-"""Set up JuHa package."""
+"""Set up JuHarmonize package."""
 
 # Authors: Federico Raimondo <f.raimondo@fz-juelich.de>
 #          Sami Hamdan <s.hamdan@fz-juelich.de>

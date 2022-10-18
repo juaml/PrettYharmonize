@@ -11,7 +11,7 @@ from .utils import subset_data
 
 
 class JuHarmonizeRegressor(JuHarmonizeCV):
-    """Do JuHa in a CV consistent manner for regression.
+    """Do JuHarmonizeCV in a CV consistent manner for regression.
 
     Parameters
     ----------

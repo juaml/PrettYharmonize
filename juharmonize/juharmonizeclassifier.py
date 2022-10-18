@@ -10,7 +10,7 @@ from .utils import check_consistency
 
 
 class JuHarmonizeClassifier(JuHarmonizeCV):
-    """Do JuHa in a CV consistent manner for classification.
+    """Do JuHarmonize in a CV consistent manner for classification.
 
     Parameters
     ----------

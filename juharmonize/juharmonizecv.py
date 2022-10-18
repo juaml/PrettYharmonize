@@ -11,7 +11,7 @@ from .utils import subset_data, check_consistency, check_harmonization_results
 
 
 class JuHarmonizeCV:
-    """Do JuHa in a CV consistent manner.
+    """Do JuHarmonize in a CV consistent manner.
 
     Parameters
     ----------
@@ -169,7 +169,7 @@ class JuHarmonizeCV:
 
         Returns
         -------
-        self: JuHaCV
+        self: JuHarmonizeCV
             the fitted model
         """
         check_consistency(X, sites, y, covars, need_y=True)
