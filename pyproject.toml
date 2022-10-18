@@ -37,6 +37,9 @@ dependencies = [
     "numpy>=1.21,<1.23",
     "julearn>=0.2",
     "pandas>=1.4.0,<1.5",
+    "neuroHarmonize>=2.1.0,<2.2",
+    "statsmodels>=0.13.2,<0.14",
+    "nibabel>=4.0.2,<4.1",
 ]
 dynamic = ["version"]
 

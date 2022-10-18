@@ -41,7 +41,6 @@ def test_JuHarmonizePredictor() -> None:
     harm_data_ft = juharm_model.predict(data)
     assert harm_data_ft.shape == data.shape
 
-
     # test Harmonization implementation with extra vars
     juharm_model = JuHarmonizePredictor()
     assert juharm_model._models is None

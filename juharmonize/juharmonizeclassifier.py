@@ -35,7 +35,7 @@ class JuHarmonizeClassifier(JuHarmonizeCV):
     def __init__(
         self,
         preserve_target: bool = True,
-        n_folds: int = 5,
+        n_splits: int = 5,
         random_state: Optional[int] = None,
         stack_model: Optional[str] = None,
         pred_model: Optional[str] = None,
@@ -43,8 +43,10 @@ class JuHarmonizeClassifier(JuHarmonizeCV):
         predict_ignore_site: bool = False,
     ) -> None:
         """Initialize the class."""
+        pred_model_params = {}
         if pred_model is None:
             pred_model = "svm"
+            pred_model_params = {"probability": True}
         if stack_model is None:
             stack_model = "logit"
 
@@ -55,12 +57,15 @@ class JuHarmonizeClassifier(JuHarmonizeCV):
         if isinstance(pred_model, str):
             _, pred_model = julearn.api.prepare_model(
                 pred_model, "binary_classification")
+            pred_model = julearn.api.prepare_model_params(
+                pred_model_params, pred_model
+            )
 
         super().__init__(
             pred_model=pred_model,
             stack_model=stack_model,
             preserve_target=preserve_target,
-            n_folds=n_folds,
+            n_splits=n_splits,
             random_state=random_state,
             use_cv_test_transforms=use_cv_test_transforms,
             predict_ignore_site=predict_ignore_site

@@ -36,7 +36,7 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
     def __init__(
         self,
         preserve_target: bool = True,
-        n_folds: int = 5,
+        n_splits: int = 5,
         random_state: Optional[int] = None,
         stack_model: Optional[str] = None,
         pred_model: Optional[str] = None,
@@ -64,7 +64,7 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
             pred_model=pred_model,
             stack_model=stack_model,
             preserve_target=preserve_target,
-            n_folds=n_folds,
+            n_splits=n_splits,
             random_state=random_state,
             use_cv_test_transforms=use_cv_test_transforms,
             predict_ignore_site=predict_ignore_site,

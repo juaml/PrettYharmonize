@@ -52,7 +52,7 @@ parser.add_argument("--covars", type=str, default=None,
                     help="If randomized sites")
 parser.add_argument("--reg_type", type=str, default="svm",
                     help="Regression model: svm or GP")
-parser.add_argument("--harm_n_folds", type=int, default=10,
+parser.add_argument("--harm_n_splits", type=int, default=10,
                     help="Folds in Harmonization")
 parser.add_argument("--harm_regression_points", type=int, default=100,
                     help="Regression point")
@@ -126,7 +126,7 @@ reg_type = params.reg_type.upper()
 stack_model_rgs = params.stack_model_rgs
 
 # Harmonizaton set up
-harm_n_folds = params.harm_n_folds
+harm_n_splits = params.harm_n_splits
 harmonize_mode = params.harmonize_mode.upper()
 regression_search_tol = params.regression_search_tol
 harm_regression_points = params.harm_regression_points
@@ -300,7 +300,7 @@ if problem_type == 'binary_classification':
 
         model_harm = JuHarmonizeClassifier(
             pred_model=pred_model,
-            n_folds=harm_n_folds,
+            n_splits=harm_n_splits,
             stack_model=stack_model_JuHaCV,
             use_cv_test_transforms=True,
             predict_ignore_site=False,
@@ -315,7 +315,7 @@ else:
 
         model_harm = JuHarmonizeRegressor(
                 pred_model=pred_model,
-                n_folds=harm_n_folds,
+                n_splits=harm_n_splits,
                 regression_points=harm_regression_points,
                 stack_model=stack_model_JuHaCV,
                 regression_search=False,

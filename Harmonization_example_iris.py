@@ -24,7 +24,7 @@ random_state = 24
 # names
 covariate_names = ["SITE", "Class"]
 # classif
-clf = SVC(probability=True,random_state=random_state)
+clf = SVC(probability=True, random_state=random_state)
 
 # kfold objects
 kf_out = KFold(n_splits=n_splits_out,shuffle= True,random_state=random_state)

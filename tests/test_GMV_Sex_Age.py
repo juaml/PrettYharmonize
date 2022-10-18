@@ -152,7 +152,7 @@ if problem_type == "binary_classification":
     stack_model_JuHaCV = "logit"
     model_harm_cv = JuHarmonizeClassifier(
         pred_model=pred_model_JuHaCV,
-        n_folds=10,
+        n_splits=10,
         stack_model=stack_model_JuHaCV,
         use_cv_test_transforms=True,
         predict_ignore_site=True,
@@ -172,7 +172,7 @@ else:
 
     model_harm_cv = JuHarmonizeRegressor(
         pred_model=pred_model_JuHaCV,
-        n_folds=10,
+        n_splits=10,
         regression_points=100,
         stack_model=stack_model_JuHaCV,
         regression_search=False,
