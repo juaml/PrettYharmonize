@@ -38,7 +38,7 @@ class JuHarmonizeCV:
         pred_model,  # TODO: Type
         stack_model,  # TODO: Type
         preserve_target: bool = True,
-        n_folds: int = 5,
+        n_splits: int = 5,
         random_state: Optional[int] = None,
         use_cv_test_transforms: bool = False,
         predict_ignore_site: bool = False,
@@ -46,7 +46,7 @@ class JuHarmonizeCV:
         """Initialize the class."""
 
         self._nh_model = None
-        self.n_folds = n_folds
+        self.n_splits = n_splits
         self.random_state = random_state
         self.preserve_target = preserve_target
         self.use_cv_test_transforms = use_cv_test_transforms
@@ -93,12 +93,12 @@ class JuHarmonizeCV:
         """
 
         cv = KFold(
-            n_splits=self.n_folds,
+            n_splits=self.n_splits,
             shuffle=True,
             random_state=self.random_state,
         )
-        # collect predictions over the whole data
-        n_classes = len(self._classes)
+        # # collect predictions over the whole data
+        # n_classes = len(self._classes)
 
         # Initialize the models and results variables
         self._nh_model = JuHarmonize(preserve_target=self.preserve_target)
