@@ -5,7 +5,7 @@ import numpy.typing as npt
 from sklearn.base import clone
 import julearn
 
-from .utils import check_harmonize_predictor_consistency
+from .utils import check_harmonize_predictor_consistency, check_consistency
 
 
 class JuHarmonizePredictor:
@@ -25,13 +25,21 @@ class JuHarmonizePredictor:
             )
         self.model = model
         self._models = None
+        self._harm_model = None
 
     def fit(
         self,
         X: npt.NDArray,
-        Y: npt.NDArray,
+        y: npt.NDArray,
+        sites: npt.NDArray,
+        covars: Optional[npt.NDArray] = None,
         extra_vars: Optional[npt.NDArray] = None,
     ):
+        check_consistency(X, sites, y, covars)
+
+        self._harm_model = JuHarmonize()
+        Y = self._harm_model.fit_transform(X, y, sites, covars)
+
         check_harmonize_predictor_consistency(X, Y, extra_vars)
         self._models = []
         for i in range(X.shape[1]):
@@ -44,8 +52,8 @@ class JuHarmonizePredictor:
             t_model.fit(t_data, Y[:, i])
             self._models.append(t_model)
         return self
-
-    def predict(
+    
+    def transform(
         self,
         X: npt.NDArray,
         extra_vars: Optional[npt.NDArray] = None,

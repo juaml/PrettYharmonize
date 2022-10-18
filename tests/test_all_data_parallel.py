@@ -287,7 +287,6 @@ if harmonize_mode == "CHEAT":
 elif harmonize_mode == "NO_TARGET":
     model_harm = JuHarmonize(preserve_target=False)
 elif harmonize_mode == "PRED":
-    model_harm_transform = JuHarmonize()
     model_harm = JuHarmonizePredictor()
 
 # Generate the models
@@ -363,10 +362,10 @@ for i_fold, (train_index, test_index) in enumerate(kf.split(X)):
 
     elif harmonize_mode == "PRED":
 
-        X_train_harm = model_harm_transform.fit_transform(X_train, y_train, sites_train, covars_train)
+        # X_train_harm = model_harm_transform.fit_transform(X_train, y_train, sites_train, covars_train)
         # Harmonize using prediction    
-        model_harm.fit(X_train, X_train_harm)
-        X_test_harm = model_harm.predict(X_test)
+        model_harm.fit(X_train, y_train, sites_train, covars_train)
+        X_test_harm = model_harm.transform(X_test)
         pred_model.fit(X_train_harm, y_train)
 
     elif harmonize_mode == "POOL":
@@ -429,8 +428,7 @@ if Xoos is not None:
 
         elif harmonize_mode == "PRED":  
 
-            X_harm = model_harm_transform.fit_transform(X, y, sites, covars)
-            model_harm.fit(X, X_harm)
+            model_harm.fit(X, y, sites, covars)
             XX = model_harm.predict(Xoos)
             pred_model.fit(X_harm, y)
             pred_pred = pred_model.predict(XX)
