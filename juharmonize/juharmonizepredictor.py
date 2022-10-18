@@ -5,6 +5,7 @@ import numpy.typing as npt
 from sklearn.base import clone
 import julearn
 
+from .juharmonize import JuHarmonize
 from .utils import check_harmonize_predictor_consistency, check_consistency
 
 
