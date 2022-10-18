@@ -16,20 +16,31 @@ class JuHarmonizeClassifier(JuHarmonizeCV):
     ----------
     preserve_target: bool
         If True, the target variable will be preserved during harmonization.
-    n_fold: int
-        Number of folds to use in the K-fold CV
+    n_splits: int
+        Number of splits (folds) to use in the K-fold CV
     random_state: int
         Random state to use for the K-fold CV
-    stack_model: str
+    stack_model: str or scikit-learn model
         The learning algorithm to use for the stacking step. Must be a valid
         string for `julearn.estimators.get_model`
-    pred_model: str
+    pred_model: str or scikit-learn model
         The learning algorithm to use for the prediction step. Must be a valid
         string for `julearn.estimators.get_model`
     use_cv_test_transforms: bool
         If True, the harmonization will be done using the K-fold CV. This will
         generate an out-of-sample harmonized X that is less prone to
         overfitting.
+    predict_ignore_site: bool
+        If True, the site will be ignored when predicting the target variable.
+        This is useful when the site is not available at fitting time (i.e. 
+        using data from a different site only available in the test set).
+        Defaults to False.
+    pred_model_params: dict, optional
+        Parameters to use for the prediction model. Only used when using the
+        julearn API (pred_model as a string).
+    stack_model_params: dict, optional
+        Parameters to use for the stacking model. Only used when using the
+        julearn API (stack_model as a string).
     """
 
     def __init__(
@@ -41,18 +52,36 @@ class JuHarmonizeClassifier(JuHarmonizeCV):
         pred_model: Optional[str] = None,
         use_cv_test_transforms: bool = False,
         predict_ignore_site: bool = False,
+        pred_model_params: Optional[dict] = None,
+        stack_model_params: Optional[dict] = None,
     ) -> None:
         """Initialize the class."""
-        pred_model_params = {}
+
+        if not isinstance(pred_model, str) and pred_model_params is not None:
+            raise ValueError(
+                'pred_model_params can only be used with the julearn API '
+                '(pred_model as a string)')
+
+        if not isinstance(stack_model, str) and stack_model_params is not None:
+            raise ValueError(
+                'stack_model_params can only be used with the julearn API '
+                '(stack_model as a string)')
+        if pred_model_params is None:
+            pred_model_params = {}
         if pred_model is None:
             pred_model = "svm"
             pred_model_params = {"probability": True}
+        if stack_model_params is None:
+            stack_model_params = {}
         if stack_model is None:
             stack_model = "logit"
 
         if isinstance(stack_model, str):
             _, stack_model = julearn.api.prepare_model(
                 stack_model, "binary_classification")
+            stack_model = julearn.api.prepare_model_params(
+                stack_model_params, stack_model
+            )
 
         if isinstance(pred_model, str):
             _, pred_model = julearn.api.prepare_model(
