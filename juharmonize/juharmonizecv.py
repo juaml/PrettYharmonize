@@ -108,10 +108,10 @@ class JuHarmonizeCV:
 
         cv_preds = None
         for _, (train_index, test_index) in enumerate(cv.split(X)):
-            X_train, sites_train, y_train, covars_train = subset_data(
+            X_train, sites_train, y_train, covars_train, _ = subset_data(
                 train_index, X, sites, y, covars)
 
-            X_test, sites_test, y_test, covars_test = subset_data(
+            X_test, sites_test, y_test, covars_test, _ = subset_data(
                 test_index, X, sites, y, covars)
 
             # Learn how to harmonize the train data

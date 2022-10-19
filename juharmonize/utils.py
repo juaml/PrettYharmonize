@@ -9,19 +9,24 @@ def subset_data(
     sites: npt.NDArray,
     y: Optional[npt.NDArray] = None,
     covars: Optional[npt.NDArray] = None,
+    extra_vars: Optional[npt.NDArray] = None,
 ) -> Tuple[
-    npt.NDArray, npt.NDArray, Optional[npt.NDArray], Optional[npt.NDArray]
+    npt.NDArray, npt.NDArray, Optional[npt.NDArray], Optional[npt.NDArray],
+    Optional[npt.NDArray]
 ]:
     assert not isinstance(index, int)
     _X = X[index]
     _sites = sites[index]
     _y = None
     _covars = None
+    _extra_vars = None
     if y is not None:
         _y = y[index]
     if covars is not None:
         _covars = covars[index]
-    return _X, _sites, _y, _covars
+    if extra_vars is not None:
+        _extra_vars = extra_vars[index]
+    return _X, _sites, _y, _covars, _extra_vars
 
 
 def check_consistency(

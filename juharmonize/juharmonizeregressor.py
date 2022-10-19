@@ -2,7 +2,7 @@
 # Imports
 import numpy as np
 import numpy.typing as npt
-from typing import Optional
+from typing import Optional, Union
 import julearn
 from warnings import warn
 
@@ -57,7 +57,7 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
         predict_ignore_site: bool = False,
         pred_model_params: Optional[dict] = None,
         stack_model_params: Optional[dict] = None,
-        regression_points: Optional[list] = None,
+        regression_points: Optional[Union[list, int]] = None,
         regression_search: Optional[bool] = False,
         regression_search_tol: float = 0,
     ) -> None:
@@ -156,7 +156,8 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
         y = np.zeros(len(sites))
         preds = np.ones((X.shape[0], 1)) * -1
         for i_X in range(X.shape[0]):
-            t_X, t_sites, _, t_covars = subset_data([i_X], X, sites, y, covars)
+            t_X, t_sites, _, t_covars, _ = subset_data(
+                [i_X], X, sites, y, covars)
             cur1, cur2 = np.array([self._y_min]), np.array([self._y_max])
             ntries = 0
             cur_dif = np.Inf

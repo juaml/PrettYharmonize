@@ -28,7 +28,7 @@ class JuHarmonizePredictor:
         self._models = None
         self._harm_model = None
 
-    def fit(
+    def _fit(
         self,
         X: npt.NDArray,
         y: npt.NDArray,
@@ -52,8 +52,32 @@ class JuHarmonizePredictor:
             t_model = clone(self.model)
             t_model.fit(t_data, Y[:, i])
             self._models.append(t_model)
+        return Y
+
+    def fit(
+        self,
+        X: npt.NDArray,
+        y: npt.NDArray,
+        sites: npt.NDArray,
+        covars: Optional[npt.NDArray] = None,
+        extra_vars: Optional[npt.NDArray] = None,
+    ):
+        _ = self._fit(
+            X=X, y=y, sites=sites, covars=covars, extra_vars=extra_vars)
         return self
-    
+
+    def fit_transform(
+        self,
+        X: npt.NDArray,
+        y: npt.NDArray,
+        sites: npt.NDArray,
+        covars: Optional[npt.NDArray] = None,
+        extra_vars: Optional[npt.NDArray] = None,
+    ):
+        X_harm = self._fit(
+            X=X, y=y, sites=sites, covars=covars, extra_vars=extra_vars)
+        return X_harm
+
     def transform(
         self,
         X: npt.NDArray,
