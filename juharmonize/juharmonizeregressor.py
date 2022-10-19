@@ -8,7 +8,7 @@ from warnings import warn
 
 from .juharmonizecv import JuHarmonizeCV
 from .utils import subset_data
-
+from .logging import logger
 
 class JuHarmonizeRegressor(JuHarmonizeCV):
     """Do JuHarmonizeCV in a CV consistent manner for regression.
@@ -155,6 +155,7 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
     def _predict_search(self, X, sites, covars):
         y = np.zeros(len(sites))
         preds = np.ones((X.shape[0], 1)) * -1
+        logger.info("Searching predictions, this may take a while...")
         for i_X in range(X.shape[0]):
             t_X, t_sites, _, t_covars, _ = subset_data(
                 [i_X], X, sites, y, covars)
@@ -183,4 +184,5 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
                 preds[i_X] = pred1[0]  # type: ignore
             else:
                 preds[i_X] = pred2[0]  # type: ignore
+        logger.info("Search done")
         return preds

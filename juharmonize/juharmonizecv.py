@@ -1,5 +1,6 @@
 # %%
 # Imports
+from cmath import log
 import numpy as np
 import numpy.typing as npt
 from sklearn.base import ClassifierMixin
@@ -8,7 +9,7 @@ from typing import Optional
 
 from . import JuHarmonize
 from .utils import subset_data, check_consistency, check_harmonization_results
-
+from .logging import logger
 
 class JuHarmonizeCV:
     """Do JuHarmonize in a CV consistent manner.
@@ -91,7 +92,7 @@ class JuHarmonizeCV:
         X_harmonized: np.array of shape [N_samples, N_features]
             the harmonized data
         """
-
+        logger.info(f"Fitting data ({X.shape})")
         cv = KFold(
             n_splits=self.n_splits,
             shuffle=True,
@@ -107,7 +108,9 @@ class JuHarmonizeCV:
             X_cv_harmonized = np.zeros(X.shape)
 
         cv_preds = None
-        for _, (train_index, test_index) in enumerate(cv.split(X)):
+        logger.info(f"Starting fitting CV using {cv}")
+        for i_fold, (train_index, test_index) in enumerate(cv.split(X)):
+            logger.info(f"\tStarting fold {i_fold}")
             X_train, sites_train, y_train, covars_train, _ = subset_data(
                 train_index, X, sites, y, covars)
 
@@ -115,36 +118,47 @@ class JuHarmonizeCV:
                 test_index, X, sites, y, covars)
 
             # Learn how to harmonize the train data
+            logger.info("\tFitting neuroHarmonize model")
             t_X_harmonized = self._nh_model.fit_transform(
                 X_train, y_train, sites_train, covars_train)  # type: ignore
+            logger.info("\tChecking harmonization results")
             check_harmonization_results(
                 X_train, t_X_harmonized, sites_train, y_train)
 
+            logger.info("\tFitting predictive model")
             # Learn how to predict y from the harmonized train data
             self.pred_model.fit(t_X_harmonized, y_train)  # type: ignore
-
+            logger.info("\tPredictive model fitted")
             # Get predictions in CV
+            logger.info("\tGetting predictions")
             preds = self._get_predictions(X_test, sites_test, covars_test)
             if cv_preds is None:
                 cv_preds = np.ones((X.shape[0], preds.shape[1])) * -1
             cv_preds[test_index, :] = preds
 
             if self.use_cv_test_transforms:
+                logger.info(
+                    "\tHarmonizing fold test data (use_cv_test_transforms)")
                 t_cv_harm = self._nh_model.transform(
                     X_test, y_test, sites_test, covars_test)  # type: ignore
+                logger.info(
+                    "\tFold test data harmonized")
                 X_cv_harmonized[test_index, :] = t_cv_harm  # type: ignore
 
         # Train the harmonization model on all the data
+        logger.info("Fitting neuroHarmonize model on all data")
         X_harmonized = self._nh_model.fit_transform(X, y, sites, covars)
         if self.use_cv_test_transforms:
             X_harmonized = X_cv_harmonized  # type: ignore
 
+        logger.info("Fitting predictive model on all data")
         # Train the prediction model on all the harmonized data
         self.pred_model.fit(X_harmonized, y)  # type: ignore
 
+        logger.info("Fitting stacking model on CV predictions")
         # train the stack model that uses the predictions from CV
         self.stack_model.fit(cv_preds, y)  # type: ignore
-
+        logger.info("Fit done")
         return X_harmonized
 
     def fit(
@@ -237,13 +251,16 @@ class JuHarmonizeCV:
         if self._nh_model is None:
             raise RuntimeError("Model not fitted")
 
+        logger.info("Transforming data ({X.shape})")
         check_consistency(X, sites, covars=covars)
-
+        logger.info("Predicting")
         preds = self._get_predictions(X, sites, covars)
-
+        logger.info("Using stacked model to predict targets")
         pred_y = self.stack_model.predict(preds)  # type: ignore
         self._pred_y = pred_y
+        logger.info("Harmonizing using the predicted sites")
         X_harmonized = self._nh_model.transform(X, pred_y, sites, covars)
+        logger.info("Transform done")
         return X_harmonized
 
     def _get_predictions(self, X, sites, covars):
@@ -296,9 +313,11 @@ class JuHarmonizeCV:
         """
         if self._nh_model is None:
             raise RuntimeError("Model not fitted")
-
+        logger.info("Predicting data ({X.shape})")
         check_consistency(X, sites, covars=covars)
-
+        logger.info("Predicting")
         preds = self._get_predictions(X, sites, covars)
+        logger.info("Using stacked model to predict targets")
         pred_y = self.stack_model.predict(preds)
+        logger.info("Predict done")
         return pred_y
