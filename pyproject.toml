@@ -7,7 +7,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "JuHarmonize"
+name = "juharmonize"
 description = "JUelich Harmonization"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -34,19 +34,18 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
 ]
 dependencies = [
-    "numpy>=1.21,<1.23",
+    "numpy>=1.22,<1.24",
     "julearn>=0.2",
     "pandas>=1.4.0,<1.5",
-    "neuroHarmonize>=2.1.0,<2.2",
+    "neuroHarmonize>=2.1.0,<=2.3",
     "statsmodels>=0.13.2,<0.14",
-    "nibabel>=4.0.2,<4.1",
 ]
 dynamic = ["version"]
 
 [project.urls]
-homepage = "https://juaml.github.io/"
-documentation = "https://juaml.github.io/"
-repository = "https://github.com/juaml/Harmonization_no_target"
+homepage = "https://github.com/juaml/juharmonize"
+documentation = "https://github.com/juaml/juharmonize"
+repository = "https://github.com/juaml/juharmonize"
 
 [project.optional-dependencies]
 dev = ["pytest"]
