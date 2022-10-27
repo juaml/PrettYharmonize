@@ -1,11 +1,12 @@
-from typing import Optional
-
+from typing import Optional, Union
+from pathlib import Path
 import numpy as np
 import numpy.typing as npt
 from sklearn.base import clone
 import julearn
 
 from .juharmonize import JuHarmonize
+from .modelstorage import ModelStorage
 from .utils import check_harmonize_predictor_consistency, check_consistency
 
 
@@ -19,12 +20,17 @@ class JuHarmonizePredictor:
         string for `julearn.estimators.get_model`
     """
 
-    def __init__(self, model: Optional[str] = "rf"):
+    def __init__(
+        self,
+        model: Optional[str] = "rf",
+        use_disk: bool = False,
+        path: Optional[Union[str, Path]] = None,
+    ) -> None:
         if isinstance(model, str):
-            _, model = julearn.api.prepare_model(
-                model, "regression"
-            )
+            _, model = julearn.api.prepare_model(model, "regression")
         self.model = model
+        self.use_disk = use_disk
+        self.path = path
         self._models = None
         self._harm_model = None
 
@@ -42,7 +48,7 @@ class JuHarmonizePredictor:
         Y = self._harm_model.fit_transform(X, y, sites, covars)
 
         check_harmonize_predictor_consistency(X, Y, extra_vars)
-        self._models = []
+        self._models = ModelStorage(use_disk=self.use_disk, path=self.path)
         for i in range(X.shape[1]):
             t_data = X[:, i]
             if extra_vars is not None:
@@ -50,7 +56,7 @@ class JuHarmonizePredictor:
             else:
                 t_data = t_data[:, None]
             t_model = clone(self.model)
-            t_model.fit(t_data, Y[:, i])
+            t_model.fit(t_data, Y[:, i])  # type: ignore
             self._models.append(t_model)
         return Y
 
@@ -63,7 +69,8 @@ class JuHarmonizePredictor:
         extra_vars: Optional[npt.NDArray] = None,
     ):
         _ = self._fit(
-            X=X, y=y, sites=sites, covars=covars, extra_vars=extra_vars)
+            X=X, y=y, sites=sites, covars=covars, extra_vars=extra_vars
+        )
         return self
 
     def fit_transform(
@@ -75,7 +82,8 @@ class JuHarmonizePredictor:
         extra_vars: Optional[npt.NDArray] = None,
     ):
         X_harm = self._fit(
-            X=X, y=y, sites=sites, covars=covars, extra_vars=extra_vars)
+            X=X, y=y, sites=sites, covars=covars, extra_vars=extra_vars
+        )
         return X_harm
 
     def transform(

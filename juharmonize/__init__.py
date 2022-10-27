@@ -9,3 +9,4 @@ from .juharmonizeregressor import JuHarmonizeRegressor
 from .juharmonizeclassifier import JuHarmonizeClassifier
 from .juharmonizepredictor import JuHarmonizePredictor
 from .juharmonizepredictorcv import JuHarmonizePredictorCV
+from .modelstorage import ModelStorage
