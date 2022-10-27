@@ -1,5 +1,4 @@
 from typing import Optional
-
 import numpy as np
 import numpy.typing as npt
 from sklearn.base import clone
