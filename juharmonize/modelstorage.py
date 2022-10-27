@@ -29,7 +29,7 @@ class ModelStorage:
                     path = Path(path)
                 if not path.is_dir():
                     raise ValueError("Path must be a directory")
-                if not os.access(path, W_OK):
+                if not os.access(path, os.W_OK):
                     raise ValueError("Path must be writable")
                 path.mkdir(exist_ok=True, parents=True)
                 if any(path.iterdir()) is True:
@@ -79,6 +79,10 @@ class ModelStorage:
         """
         if idx >= self._n_models:
             raise IndexError("Index out of range")
+        if idx < 0:
+            if -idx > self._n_models:
+                raise IndexError("Index out of range")
+            idx = self._n_models + idx
         if self.use_disk:
             fname = self.path / f"model_{idx}.pkl"
             return joblib.load(fname)
