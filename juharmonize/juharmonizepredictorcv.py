@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.typing as npt
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from sklearn.model_selection import KFold
 
@@ -12,11 +12,15 @@ class JuHarmonizePredictorCV:
     def __init__(
         self, 
         n_splits: int = 10,
-        random_state: Optional[int] = None
+        random_state: Optional[int] = None,
+        predictor_params: Optional[Dict['str', Any]] = None
     ) -> None:
         self.n_splits = n_splits
         self.random_state = random_state
         self._model = None
+        if predictor_params is None:
+            predictor_params = {}
+        self.predictor_params = predictor_params
 
     def fit(
         self,
@@ -27,7 +31,7 @@ class JuHarmonizePredictorCV:
         extra_vars: Optional[npt.NDArray] = None,
 
     ) -> "JuHarmonizePredictorCV":
-        self._model = JuHarmonizePredictor()
+        self._model = JuHarmonizePredictor(**self.predictor_params)
         self._model.fit(X, y, sites, covars, extra_vars)
         return self
 
@@ -40,7 +44,7 @@ class JuHarmonizePredictorCV:
         extra_vars: Optional[npt.NDArray] = None,
 
     ) -> npt.NDArray:
-        self._model = JuHarmonizePredictor()
+        self._model = JuHarmonizePredictor(**self.predictor_params)
         Xout = np.empty_like(X)
         Xout[:] = np.nan
         kf = KFold(
