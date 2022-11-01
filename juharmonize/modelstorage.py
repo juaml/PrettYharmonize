@@ -88,3 +88,9 @@ class ModelStorage:
             return joblib.load(fname)
         else:
             return self._mem_models[idx]
+
+    def __del__(self) -> None:
+        """Cleanup temporary directory if necessary."""
+        if self.use_disk:
+            for fname in self.path.glob("model_*.pkl"):
+                fname.unlink()
