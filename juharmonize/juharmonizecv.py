@@ -41,7 +41,7 @@ class JuHarmonizeCV:
         preserve_target: bool = True,
         n_splits: int = 5,
         random_state: Optional[int] = None,
-        use_cv_test_transforms: bool = True,
+        use_cv_test_transforms: bool = False,
         predict_ignore_site: bool = False,
     ) -> None:
         """Initialize the class."""
@@ -107,7 +107,7 @@ class JuHarmonizeCV:
         if self.use_cv_test_transforms:
             X_cv_harmonized = np.zeros(X.shape)
 
-        cv_preds = None
+        cv_preds = np.ones((X.shape[0], preds.shape[1])) * -1
         logger.info(f"Starting fitting CV using {cv}")
         for i_fold, (train_index, test_index) in enumerate(cv.split(X)):
             logger.info(f"\tStarting fold {i_fold}")
@@ -131,9 +131,7 @@ class JuHarmonizeCV:
             logger.info("\tPredictive model fitted")
             # Get predictions in CV
             logger.info("\tGetting predictions")
-            preds = self._get_predictions(X_test, sites_test, covars_test)
-            if cv_preds is None:
-                cv_preds = np.ones((X.shape[0], preds.shape[1])) * -1
+            preds = self._get_predictions(X_test, sites_test, covars_test)              
             cv_preds[test_index, :] = preds
 
             if self.use_cv_test_transforms:
@@ -146,10 +144,13 @@ class JuHarmonizeCV:
                 X_cv_harmonized[test_index, :] = t_cv_harm  # type: ignore
 
         # Train the harmonization model on all the data
-        logger.info("Fitting neuroHarmonize model on all data")
-        X_harmonized = self._nh_model.fit_transform(X, y, sites, covars)
         if self.use_cv_test_transforms:
+            logger.info("Using harmonized test data (use_cv_test_transforms)")
             X_harmonized = X_cv_harmonized  # type: ignore
+        else:
+            logger.info("Fitting neuroHarmonize model on all data")
+            X_harmonized = self._nh_model.fit_transform(X, y, sites, covars)
+        
 
         logger.info("Fitting predictive model on all data")
         # Train the prediction model on all the harmonized data
