@@ -53,7 +53,7 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
         random_state: Optional[int] = None,
         stack_model: Optional[str] = None,
         pred_model: Optional[str] = None,
-        use_cv_test_transforms: bool = False,
+        use_cv_test_transforms: bool = True,
         predict_ignore_site: bool = False,
         pred_model_params: Optional[dict] = None,
         stack_model_params: Optional[dict] = None,
