@@ -41,7 +41,7 @@ class JuHarmonizeCV:
         preserve_target: bool = True,
         n_splits: int = 5,
         random_state: Optional[int] = None,
-        use_cv_test_transforms: bool = False,
+        use_cv_test_transforms: bool = True,
         predict_ignore_site: bool = False,
     ) -> None:
         """Initialize the class."""
