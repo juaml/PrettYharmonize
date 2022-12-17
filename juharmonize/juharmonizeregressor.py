@@ -55,6 +55,7 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
         pred_model: Optional[str] = None,
         use_cv_test_transforms: bool = False,
         predict_ignore_site: bool = False,
+        predict_X: bool = False,
         pred_model_params: Optional[dict] = None,
         stack_model_params: Optional[dict] = None,
         regression_points: Optional[Union[list, int]] = None,
@@ -94,6 +95,7 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
             pred_model = julearn.api.prepare_model_params(
                 pred_model_params, pred_model
             )
+            
 
         super().__init__(
             pred_model=pred_model,
@@ -103,6 +105,7 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
             random_state=random_state,
             use_cv_test_transforms=use_cv_test_transforms,
             predict_ignore_site=predict_ignore_site,
+            predict_X=predict_X,
         )
         self.regression_points = regression_points
         self.regression_search = regression_search
@@ -141,9 +144,16 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
                 "maximum value of regression points is "
                 f"{np.max(self.regression_points)}")
 
-    def _pred_model_predict(self, X: npt.NDArray) -> npt.NDArray:
-        """Predict the target variable using the prediction model."""
-        return self.pred_model.predict(X)
+    def _pred_model_predict(self, Xh: npt.NDArray, X: None) -> npt.NDArray:
+        """Predict the target variable using the prediction model.
+        Xh: harmonized data, array-like, shape (n_samples, n_features)
+        X: original data, array-like, shape (n_samples, n_features)
+        """
+        preds = self.pred_model.predict(Xh)
+        if X is not None:
+            preds_X = self.pred_model_X.predict(X)
+            preds = np.column_stack((preds, preds_X))
+        return preds
 
     def _get_predictions(self, X, sites, covars):
         if self.regression_search:

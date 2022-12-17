@@ -32,6 +32,8 @@ class JuHarmonizeCV:
         If True, the harmonization will be done using the K-fold CV. This will
         generate an out-of-sample harmonized X that is less prone to
         overfitting.
+    predict_ignore_site: bool False
+    predict_X: bool True
     """
 
     def __init__(
@@ -41,8 +43,9 @@ class JuHarmonizeCV:
         preserve_target: bool = True,
         n_splits: int = 5,
         random_state: Optional[int] = None,
-        use_cv_test_transforms: bool = False,
+        use_cv_test_transforms: bool = True,
         predict_ignore_site: bool = False,
+        predict_X: bool = False,
     ) -> None:
         """Initialize the class."""
 
@@ -52,8 +55,11 @@ class JuHarmonizeCV:
         self.preserve_target = preserve_target
         self.use_cv_test_transforms = use_cv_test_transforms
         self.predict_ignore_site = predict_ignore_site
-
+        self.predict_X = predict_X
         self.pred_model = pred_model
+        self.pred_model_X = None
+        if predict_X:
+            self.pred_model_X = pred_model
         self.stack_model = stack_model
         self._classes = None
         self._sites = None
@@ -107,7 +113,7 @@ class JuHarmonizeCV:
         if self.use_cv_test_transforms:
             X_cv_harmonized = np.zeros(X.shape)
 
-        cv_preds = np.ones((X.shape[0], preds.shape[1])) * -1
+        cv_preds = None
         logger.info(f"Starting fitting CV using {cv}")
         for i_fold, (train_index, test_index) in enumerate(cv.split(X)):
             logger.info(f"\tStarting fold {i_fold}")
@@ -128,10 +134,14 @@ class JuHarmonizeCV:
             logger.info("\tFitting predictive model")
             # Learn how to predict y from the harmonized train data
             self.pred_model.fit(t_X_harmonized, y_train)  # type: ignore
+            if self.predict_X:
+                self.pred_model_X.fit(X_train, y_train)
             logger.info("\tPredictive model fitted")
             # Get predictions in CV
             logger.info("\tGetting predictions")
-            preds = self._get_predictions(X_test, sites_test, covars_test)              
+            preds = self._get_predictions(X_test, sites_test, covars_test)
+            if cv_preds is None:
+                cv_preds = np.ones((X.shape[0], preds.shape[1])) * -1
             cv_preds[test_index, :] = preds
 
             if self.use_cv_test_transforms:
@@ -155,7 +165,8 @@ class JuHarmonizeCV:
         logger.info("Fitting predictive model on all data")
         # Train the prediction model on all the harmonized data
         self.pred_model.fit(X_harmonized, y)  # type: ignore
-
+        if self.predict_X:
+            self.pred_model_X.fit(X, y)
         logger.info("Fitting stacking model on CV predictions")
         # train the stack model that uses the predictions from CV
         self.stack_model.fit(cv_preds, y)  # type: ignore
@@ -274,15 +285,24 @@ class JuHarmonizeCV:
             if a_site is None:
                 t_sites = sites
             else:
+                # Pretend that all samples are from a_site
                 t_sites = np.array([a_site] * len(sites))
-            s_preds = np.ones((X.shape[0], len(self._classes))) * -1
-            for i_cls, t_cls in enumerate(self._classes):
+            #s_preds = np.ones((X.shape[0], len(self._classes))) * -1
+            s_preds = None
+            for i_cls, t_cls in enumerate(self._classes):                
                 t_y = np.ones(X.shape[0], dtype=int) * t_cls
                 t_X_harmonized = self._nh_model.transform(  # type: ignore
                     X, t_y, t_sites, covars)
-                s_preds[:, i_cls] = \
-                    self._pred_model_predict(t_X_harmonized)
-            preds = (np.hstack((preds, s_preds))
+                #s_preds[:, i_cls] = \
+                #    self._pred_model_predict(t_X_harmonized)
+                if self.predict_X:
+                    s_preds_i = self._pred_model_predict(t_X_harmonized, X)
+                else:
+                    s_preds_i = self._pred_model_predict(t_X_harmonized)
+
+                s_preds = (np.column_stack((s_preds, s_preds_i))
+                     if (s_preds is not None) else s_preds_i)
+            preds = (np.column_stack((preds, s_preds))
                      if (preds is not None) else s_preds)
 
         return preds

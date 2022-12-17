@@ -52,6 +52,7 @@ class JuHarmonizeClassifier(JuHarmonizeCV):
         pred_model: Optional[str] = None,
         use_cv_test_transforms: bool = False,
         predict_ignore_site: bool = False,
+        predict_X: bool = False,
         pred_model_params: Optional[dict] = None,
         stack_model_params: Optional[dict] = None,
     ) -> None:
@@ -97,7 +98,8 @@ class JuHarmonizeClassifier(JuHarmonizeCV):
             n_splits=n_splits,
             random_state=random_state,
             use_cv_test_transforms=use_cv_test_transforms,
-            predict_ignore_site=predict_ignore_site
+            predict_ignore_site=predict_ignore_site,
+            predict_X=predict_X,
         )
 
     def _prepare_fit(
@@ -111,9 +113,24 @@ class JuHarmonizeClassifier(JuHarmonizeCV):
 
         self._classes = np.sort(np.unique(y))
 
-    def _pred_model_predict(self, X: npt.NDArray) -> npt.NDArray:
-        """Predict the target variable using the prediction model."""
-        return self.pred_model.predict_proba(X)[:, 0]
+    def _pred_model_predict(self, Xh: npt.NDArray, X=None) -> npt.NDArray:
+        """Predict the target variable using the prediction model.
+        Parameters
+        ==========
+        X: numpy array of shape [N_samples x N_features]
+        X can also be a list of numpy arrays of shape [N_samples x N_features]
+        """
+        try:
+            preds = self.pred_model.predict_proba(Xh)[:, 0]
+        except AttributeError:
+            preds = self.pred_model.predict(Xh)
+        if X is not None:
+            try:
+                predx = self.pred_model_X.predict_proba(X)[:, 0]
+            except AttributeError:
+                predx = self.pred_model_X.predict(X)
+            preds = np.column_stack((preds, predx))
+        return preds
 
     def predict_proba(
         self,
@@ -142,6 +159,6 @@ class JuHarmonizeClassifier(JuHarmonizeCV):
 
         check_consistency(X, sites, covars=covars)
 
-        preds = self._get_predictions(X, sites, covars)
+        preds = self._get_predictions(X, sites, covars)        
         pred_y = self.stack_model.predict_proba(preds)
         return pred_y
