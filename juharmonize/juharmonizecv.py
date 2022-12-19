@@ -125,12 +125,13 @@ class JuHarmonizeCV:
         
         if 'pred_harm_target' in self.stack_model_features:
             self._nh_model['model'] = JuHarmonize(preserve_target=self.preserve_target)
+            if self.use_cv_test_transforms:
+                X_cv_harmonized = np.zeros(X.shape)
             
         if 'pred_harm_notarget' in self.stack_model_features:
             self._nh_model['notarget'] = JuHarmonize(preserve_target=False)
-
-        if self.use_cv_test_transforms:
-            X_cv_harmonized = np.zeros(X.shape)
+            if self.use_cv_test_transforms:
+                X_cv_harmonized_notarget = np.zeros(X.shape)
 
         # get CV based predictions for stacking
         cv_preds = None
@@ -180,26 +181,39 @@ class JuHarmonizeCV:
             if self.use_cv_test_transforms:
                 logger.info(
                     "\tHarmonizing fold test data (use_cv_test_transforms)")
-                t_cv_harm = self._nh_model.transform(
-                    X_test, y_test, sites_test, covars_test)  # type: ignore
-                logger.info(
-                    "\tFold test data harmonized")
-                X_cv_harmonized[test_index, :] = t_cv_harm  # type: ignore
-        
+                if 'pred_harm_target' in self.stack_model_features:
+                    t_cv_harm = self._nh_model.transform(
+                        X_test, y_test, sites_test, covars_test)  # type: ignore
+                    X_cv_harmonized[test_index, :] = t_cv_harm  # type: ignore
+
+                if 'pred_harm_notarget' in self.stack_model_features:
+                    t_cv_harm = self._nh_model.transform(
+                        X_test, y_test, sites_test, covars_test)  # type: ignore
+                    X_cv_harmonized_notarget[test_index, :] = t_cv_harm
+                
+                logger.info("\tFold test data harmonized")
+
+        # Train the prediction model on all the harmonized data
+        # Train the harmonization model on all the data
         logger.info("Fitting predictive models on all data")
-        if 'pred_harm_target' in self.stack_model_features:            
-            # Train the prediction model on all the harmonized data
-            # Train the harmonization model on all the data
+        if 'pred_harm_target' in self.stack_model_features:
+            logger.info("pred_harm_target")
             if self.use_cv_test_transforms:
                 logger.info("Using harmonized test data (use_cv_test_transforms)")
                 X_harmonized = X_cv_harmonized  # type: ignore
             else:
                 logger.info("Fitting neuroHarmonize model on all data")
-                X_harmonized = self._nh_model['model'].fit_transform(X, y, sites, covars)
+                X_harmonized = \
+                    self._nh_model['model'].fit_transform(X, y, sites, covars)
             self.pred_model['pred_harm_target'].fit(X_harmonized, y)  # type: ignore
         
         if 'pred_harm_notarget' in self.stack_model_features:
-            X_harmonized_notarget = self._nh_model['notarget'].fit_transform(X, None, sites, covars)
+            logger.info("pred_harm_notarget")
+            if self.use_cv_test_transforms:
+                X_harmonized_notarget = X_cv_harmonized_notarget
+            else:
+                X_harmonized_notarget = \
+                    self._nh_model['notarget'].fit_transform(X, None, sites, covars)
             self.pred_model['pred_harm_notarget'].fit(X_harmonized_notarget, y)
         
         if 'pred_orig' in self.stack_model_features:
