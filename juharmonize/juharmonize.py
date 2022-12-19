@@ -47,6 +47,8 @@ class JuHarmonize:
         """
         check_consistency(X, sites, y, covars)
 
+        # create a dataframe that is understood by neuroHarmonize
+        # this must include a "SITE" column
         df_covars = pd.DataFrame({"SITE": sites})
         if self.preserve_target:
             if y is None:

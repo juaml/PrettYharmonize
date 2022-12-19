@@ -55,9 +55,9 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
         pred_model: Optional[str] = None,
         use_cv_test_transforms: bool = False,
         predict_ignore_site: bool = False,
-        predict_X: bool = False,
         pred_model_params: Optional[dict] = None,
         stack_model_params: Optional[dict] = None,
+        stack_model_features: Optional[list] = ['pred_harm_target'],
         regression_points: Optional[Union[list, int]] = None,
         regression_search: Optional[bool] = False,
         regression_search_tol: float = 0,
@@ -76,7 +76,7 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
             pred_model_params = {}
         if pred_model is None:
             pred_model = "svm"
-            pred_model_params = {"probability": True}
+            pred_model_params = {} # not needed for regression {"probability": True}
         if stack_model_params is None:
             stack_model_params = {}
         if stack_model is None:
@@ -105,7 +105,7 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
             random_state=random_state,
             use_cv_test_transforms=use_cv_test_transforms,
             predict_ignore_site=predict_ignore_site,
-            predict_X=predict_X,
+            stack_model_features=stack_model_features,
         )
         self.regression_points = regression_points
         self.regression_search = regression_search
@@ -144,19 +144,17 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
                 "maximum value of regression points is "
                 f"{np.max(self.regression_points)}")
 
-    def _pred_model_predict(self, Xh: npt.NDArray, X: None) -> npt.NDArray:
+    def _pred_model_predict(self, X: npt.NDArray, model) -> npt.NDArray:
         """Predict the target variable using the prediction model.
-        Xh: harmonized data, array-like, shape (n_samples, n_features)
-        X: original data, array-like, shape (n_samples, n_features)
+        X: data, array-like, shape (n_samples, n_features)
+        model: model to use for prediction
         """
-        preds = self.pred_model.predict(Xh)
-        if X is not None:
-            preds_X = self.pred_model_X.predict(X)
-            preds = np.column_stack((preds, preds_X))
+        preds = self.pred_model[model].predict(X)
         return preds
 
     def _get_predictions(self, X, sites, covars):
         if self.regression_search:
+            raise NotImplementedError("regression_search not implemented yet.")
             preds = self._predict_search(X, sites, covars)
         else:
             preds = super()._get_predictions(X, sites, covars)
