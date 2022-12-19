@@ -71,7 +71,7 @@ class JuHarmonizeCV:
         
         # we can have multiple pred and nh models depending on stack_model_features
         self._nh_model = {}
-        self._nh_model['model'] = None
+        self._nh_model['target'] = None
         self.pred_model = {}
         for f in stack_model_features:
             if 'pred_' in f:
@@ -125,7 +125,7 @@ class JuHarmonizeCV:
         # n_classes = len(self._classes)
         
         if 'pred_harm_target' in self.stack_model_features:
-            self._nh_model['model'] = JuHarmonize(preserve_target=self.preserve_target)
+            self._nh_model['target'] = JuHarmonize(preserve_target=self.preserve_target)
             if self.use_cv_test_transforms:
                 X_cv_harmonized = np.zeros(X.shape)
             
@@ -147,7 +147,7 @@ class JuHarmonizeCV:
             # Learn how to harmonize the train data
             if 'pred_harm_target' in self.stack_model_features:
                 logger.info("\tFitting neuroHarmonize model")
-                t_X_harmonized = self._nh_model['model'].fit_transform(
+                t_X_harmonized = self._nh_model['target'].fit_transform(
                     X_train, y_train, sites_train, covars_train)  # type: ignore
                 logger.info("\tChecking harmonization results")
                 check_harmonization_results(
@@ -183,7 +183,7 @@ class JuHarmonizeCV:
                 logger.info(
                     "\tHarmonizing fold test data (use_cv_test_transforms)")
                 if 'pred_harm_target' in self.stack_model_features:
-                    t_cv_harm = self._nh_model['model'].transform(
+                    t_cv_harm = self._nh_model['target'].transform(
                         X_test, y_test, sites_test, covars_test)  # type: ignore
                     X_cv_harmonized[test_index, :] = t_cv_harm  # type: ignore
 
@@ -205,7 +205,7 @@ class JuHarmonizeCV:
             else:
                 logger.info("Fitting neuroHarmonize model on all data")
                 X_harmonized = \
-                    self._nh_model['model'].fit_transform(X, y, sites, covars)
+                    self._nh_model['target'].fit_transform(X, y, sites, covars)
             self.pred_model['pred_harm_target'].fit(X_harmonized, y)  # type: ignore
         
         if 'pred_harm_notarget' in self.stack_model_features:
@@ -349,7 +349,7 @@ class JuHarmonizeCV:
                 s_preds = np.empty((X.shape[0], 0))
                 for i_cls, t_cls in enumerate(self._classes):                
                     t_y = np.ones(X.shape[0], dtype=int) * t_cls
-                    t_X_harmonized = self._nh_model['model'].transform(  # type: ignore
+                    t_X_harmonized = self._nh_model['target'].transform(  # type: ignore
                         X, t_y, t_sites, covars)
                     #s_preds[:, i_cls] = \
                     #    self._pred_model_predict(t_X_harmonized)
@@ -395,7 +395,7 @@ class JuHarmonizeCV:
         pred_y: numpy array of shape [N_samples, 1]
             the prediction
         """
-        if self._nh_model['model'] is None:
+        if self._nh_model['target'] is None:
             raise RuntimeError("Model not fitted")
         logger.info("Predicting data ({X.shape})")
         check_consistency(X, sites, covars=covars)
