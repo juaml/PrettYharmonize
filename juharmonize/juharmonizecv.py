@@ -183,12 +183,12 @@ class JuHarmonizeCV:
                 logger.info(
                     "\tHarmonizing fold test data (use_cv_test_transforms)")
                 if 'pred_harm_target' in self.stack_model_features:
-                    t_cv_harm = self._nh_model.transform(
+                    t_cv_harm = self._nh_model['model'].transform(
                         X_test, y_test, sites_test, covars_test)  # type: ignore
                     X_cv_harmonized[test_index, :] = t_cv_harm  # type: ignore
 
                 if 'pred_harm_notarget' in self.stack_model_features:
-                    t_cv_harm = self._nh_model.transform(
+                    t_cv_harm = self._nh_model['notarget'].transform(
                         X_test, y_test, sites_test, covars_test)  # type: ignore
                     X_cv_harmonized_notarget[test_index, :] = t_cv_harm
                 
