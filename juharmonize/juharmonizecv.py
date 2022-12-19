@@ -113,6 +113,7 @@ class JuHarmonizeCV:
         X_harmonized: np.array of shape [N_samples, N_features]
             the harmonized data
         """
+        X_harmonized = None
         # get features for the stack model using CV
         logger.info(f"Fitting data ({X.shape})")
         cv = KFold(
