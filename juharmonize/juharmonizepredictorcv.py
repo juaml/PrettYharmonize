@@ -10,7 +10,7 @@ from .utils import subset_data
 
 class JuHarmonizePredictorCV:
     def __init__(
-        self, 
+        self,
         n_splits: int = 10,
         random_state: Optional[int] = None,
         predictor_params: Optional[Dict['str', Any]] = None
@@ -48,7 +48,7 @@ class JuHarmonizePredictorCV:
         Xout = np.empty_like(X)
         Xout[:] = np.nan
         kf = KFold(
-            n_splits=self.n_splits, random_state=self.random_state, 
+            n_splits=self.n_splits, random_state=self.random_state,
             shuffle=True)
         for _, (train_index, test_index) in enumerate(kf.split(X)):
             X_train, sites_train, y_train, covars_train, extra_vars_train = \

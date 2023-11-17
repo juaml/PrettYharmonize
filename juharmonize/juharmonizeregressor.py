@@ -10,6 +10,7 @@ from .juharmonizecv import JuHarmonizeCV
 from .utils import subset_data
 from .logging import logger
 
+
 class JuHarmonizeRegressor(JuHarmonizeCV):
     """Do JuHarmonizeCV in a CV consistent manner for regression.
 
@@ -35,7 +36,7 @@ class JuHarmonizeRegressor(JuHarmonizeCV):
         stack_model_params: Optional[dict] = None,
     predict_ignore_site: bool
         If True, the site will be ignored when predicting the target variable.
-        This is useful when the site is not available at fitting time (i.e. 
+        This is useful when the site is not available at fitting time (i.e.
         using data from a different site only available in the test set).
         Defaults to False.
     pred_model_params: dict, optional

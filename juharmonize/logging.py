@@ -1,7 +1,7 @@
 """Provide class and functions for logging."""
 
 # Authors: Federico Raimondo <f.raimondo@fz-juelich.de>
-#          Synchon Mandal <s.mandal@fz-juelich.de>
+#          Nicolás Nieto <n.nieto@fz-juelich.de>
 # License: AGPL
 
 import logging

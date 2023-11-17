@@ -1,15 +1,16 @@
 # %%
 # Imports
-from cmath import log
+from cmath import log   # noqa
 import numpy as np
 import numpy.typing as npt
-from sklearn.base import ClassifierMixin
+from sklearn.base import ClassifierMixin    # noqa
 from sklearn.model_selection import KFold
 from typing import Optional
 
 from . import JuHarmonize
 from .utils import subset_data, check_consistency, check_harmonization_results
 from .logging import logger
+
 
 class JuHarmonizeCV:
     """Do JuHarmonize in a CV consistent manner.
