@@ -8,7 +8,7 @@ from typing import Optional
 from .utils import check_consistency
 
 
-class JuHarmonize:
+class PrettYharmonize:
     """Class to perform JuHa harmonization (learn and apply)
 
     Parameters
@@ -30,7 +30,7 @@ class JuHarmonize:
         y: npt.NDArray,
         sites: npt.NDArray,
         covars: Optional[npt.NDArray] = None,
-    ) -> "JuHarmonize":
+    ) -> "PrettYharmonize":
         """
         Learn the harmonization model
 

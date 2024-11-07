@@ -7,13 +7,13 @@ from sklearn.base import ClassifierMixin    # noqa
 from sklearn.model_selection import KFold
 from typing import Optional
 
-from . import JuHarmonize
+from .prettyharmonize import PrettYharmonize
 from .utils import subset_data, check_consistency, check_harmonization_results
 from .logging import logger
 
 
-class JuHarmonizeCV:
-    """Do JuHarmonize in a CV consistent manner.
+class PrettYharmonizeCV:
+    """Do PrettYharmonize in a CV consistent manner.
 
     Parameters
     ----------
@@ -103,7 +103,7 @@ class JuHarmonizeCV:
         # n_classes = len(self._classes)
 
         # Initialize the models and results variables
-        self._nh_model = JuHarmonize(preserve_target=self.preserve_target)
+        self._nh_model = PrettYharmonize(preserve_target=self.preserve_target)
 
         if self.use_cv_test_transforms:
             X_cv_harmonized = np.zeros(X.shape)
@@ -168,7 +168,7 @@ class JuHarmonizeCV:
         y: npt.NDArray,
         sites: npt.NDArray,
         covars: Optional[npt.NDArray] = None,
-    ) -> "JuHarmonizeCV":
+    ) -> "PrettYharmonizeCV":
         """Learn the leak-free harmonization model
 
         Parameters
@@ -184,7 +184,7 @@ class JuHarmonizeCV:
 
         Returns
         -------
-        self: JuHarmonizeCV
+        self: PrettYharmonizeCV
             the fitted model
         """
         check_consistency(X, sites, y, covars, need_y=True)

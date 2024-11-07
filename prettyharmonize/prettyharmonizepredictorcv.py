@@ -4,11 +4,11 @@ from typing import Optional, Dict, Any
 
 from sklearn.model_selection import KFold
 
-from . import JuHarmonizePredictor
+from .prettyharmonizepredictor import PrettYharmonizePredictor
 from .utils import subset_data
 
 
-class JuHarmonizePredictorCV:
+class PrettYharmonizePredictorCV:
     def __init__(
         self,
         n_splits: int = 10,
@@ -30,8 +30,8 @@ class JuHarmonizePredictorCV:
         covars: Optional[npt.NDArray] = None,
         extra_vars: Optional[npt.NDArray] = None,
 
-    ) -> "JuHarmonizePredictorCV":
-        self._model = JuHarmonizePredictor(**self.predictor_params)
+    ) -> "PrettYharmonizePredictorCV":
+        self._model = PrettYharmonizePredictor(**self.predictor_params)
         self._model.fit(X, y, sites, covars, extra_vars)
         return self
 
@@ -44,7 +44,7 @@ class JuHarmonizePredictorCV:
         extra_vars: Optional[npt.NDArray] = None,
 
     ) -> npt.NDArray:
-        self._model = JuHarmonizePredictor(**self.predictor_params)
+        self._model = PrettYharmonizePredictor(**self.predictor_params)
         Xout = np.empty_like(X)
         Xout[:] = np.nan
         kf = KFold(

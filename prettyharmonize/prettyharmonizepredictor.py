@@ -5,12 +5,12 @@ import numpy.typing as npt
 from sklearn.base import clone
 import julearn
 
-from .juharmonize import JuHarmonize
+from .prettyharmonize import PrettYharmonize
 from .modelstorage import ModelStorage
 from .utils import check_harmonize_predictor_consistency, check_consistency
 
 
-class JuHarmonizePredictor:
+class PrettYharmonizePredictor:
     """Harmonization-prediction model.
 
     Parameters
@@ -44,7 +44,7 @@ class JuHarmonizePredictor:
     ):
         check_consistency(X, sites, y, covars)
 
-        self._harm_model = JuHarmonize()
+        self._harm_model = PrettYharmonize()
         Y = self._harm_model.fit_transform(X, y, sites, covars)
 
         check_harmonize_predictor_consistency(X, Y, extra_vars)

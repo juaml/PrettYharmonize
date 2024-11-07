@@ -5,12 +5,12 @@ import numpy.typing as npt
 from typing import Optional
 import julearn
 
-from .juharmonizecv import JuHarmonizeCV
+from .prettyharmonizecv import PrettYharmonizeCV
 from .utils import check_consistency
 
 
-class JuHarmonizeClassifier(JuHarmonizeCV):
-    """Do JuHarmonize in a CV consistent manner for classification.
+class PrettYharmonizeClassifier(PrettYharmonizeCV):
+    """Do PrettYharmonize in a CV consistent manner for classification.
 
     Parameters
     ----------
@@ -32,7 +32,7 @@ class JuHarmonizeClassifier(JuHarmonizeCV):
         overfitting.
     predict_ignore_site: bool
         If True, the site will be ignored when predicting the target variable.
-        This is useful when the site is not available at fitting time (i.e. 
+        This is useful when the site is not available at fitting time (i.e.
         using data from a different site only available in the test set).
         Defaults to False.
     pred_model_params: dict, optional

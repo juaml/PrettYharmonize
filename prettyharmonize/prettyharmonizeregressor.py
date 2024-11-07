@@ -6,13 +6,13 @@ from typing import Optional, Union
 import julearn
 from warnings import warn
 
-from .juharmonizecv import JuHarmonizeCV
+from .prettyharmonizecv import PrettYharmonizeCV
 from .utils import subset_data
 from .logging import logger
 
 
-class JuHarmonizeRegressor(JuHarmonizeCV):
-    """Do JuHarmonizeCV in a CV consistent manner for regression.
+class PrettYharmonizeRegressor(PrettYharmonizeCV):
+    """Do PrettYharmonizeCV in a CV consistent manner for regression.
 
     Parameters
     ----------
