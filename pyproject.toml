@@ -7,8 +7,8 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "juharmonize"
-description = "JUelich Harmonization"
+name = "prettyharmonize"
+description = "Pretend Target Y Harmonization"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {file = "LICENSE.md"}
@@ -43,9 +43,9 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-homepage = "https://github.com/juaml/juharmonize"
-documentation = "https://github.com/juaml/juharmonize"
-repository = "https://github.com/juaml/juharmonize"
+homepage = "https://github.com/juaml/PrettYharmonize"
+documentation = "https://github.com/juaml/PrettYharmonize"
+repository = "https://github.com/juaml/PrettYharmonize"
 
 [project.optional-dependencies]
 dev = ["pytest"]
@@ -64,12 +64,12 @@ docs = [
 ################
 
 [tool.setuptools]
-packages = ["juharmonize"]
+packages = ["prettyharmonize"]
 
 [tool.setuptools_scm]
 version_scheme = "python-simplified-semver"
 local_scheme = "no-local-version"
-write_to = "juharmonize/_version.py"
+write_to = "prettyharmonize/_version.py"
 
 [tool.black]
 line-length = 79

@@ -3,7 +3,7 @@ from numpy.testing import assert_array_equal
 from pathlib import Path
 import pytest
 
-from juharmonize.modelstorage import ModelStorage
+from prettyharmonize.modelstorage import ModelStorage
 
 
 def test_modelstorage_fs(tmp_path: Path) -> None:

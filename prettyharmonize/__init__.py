@@ -5,9 +5,9 @@
 # License: AGPL
 
 from ._version import __version__
-from .juharmonize import JuHarmonize
-from .juharmonizeregressor import JuHarmonizeRegressor
-from .juharmonizeclassifier import JuHarmonizeClassifier
-from .juharmonizepredictor import JuHarmonizePredictor
-from .juharmonizepredictorcv import JuHarmonizePredictorCV
+from .prettyharmonize import PrettYharmonize
+from .prettyharmonizeregressor import PrettYharmonizeRegressor
+from .prettyharmonizeclassifier import PrettYharmonizeClassifier
+from .prettyharmonizepredictor import PrettYharmonizePredictor
+from .prettyharmonizepredictorcv import PrettYharmonizePredictorCV
 from .modelstorage import ModelStorage

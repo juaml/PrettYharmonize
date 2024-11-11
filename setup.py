@@ -1,4 +1,4 @@
-"""Set up JuHarmonize package."""
+"""Set up PrettYharmonize package."""
 
 # Authors: Federico Raimondo <f.raimondo@fz-juelich.de>
 #          Nicolás Nieto <n.nieto@fz-juelich.de>

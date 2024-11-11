@@ -1,11 +1,11 @@
 import numpy as np
 from seaborn import load_dataset
 
-from juharmonize import JuHarmonizePredictor
+from prettyharmonizepredictor import PrettYharmonizePredictor
 
 
-def test_JuHarmonizePredictor() -> None:
-    """Test JuHarmonizePredictor Class"""
+def test_PrettYharmonizePredictor() -> None:
+    """Test PrettYharmonizePredictor Class"""
     # Load data
     df_iris = load_dataset('iris')
 
@@ -32,7 +32,7 @@ def test_JuHarmonizePredictor() -> None:
     sites = np.random.randint(low=0, high=2, size=num_samples)
 
     # test Harmonization implementation
-    juharm_model = JuHarmonizePredictor()
+    juharm_model = PrettYharmonizePredictor()
     assert juharm_model._models is None
 
     juharm_model.fit(data, sites=sites, y=target)
@@ -43,7 +43,7 @@ def test_JuHarmonizePredictor() -> None:
     assert harm_data_ft.shape == data.shape
 
     # test Harmonization implementation with extra vars
-    juharm_model = JuHarmonizePredictor()
+    juharm_model = PrettYharmonizePredictor()
     assert juharm_model._models is None
 
     juharm_model.fit(data, sites=sites, y=target)
@@ -54,8 +54,8 @@ def test_JuHarmonizePredictor() -> None:
     assert harm_data_ft.shape == data.shape
 
 
-def test_JuHarmonizePredictor_storage() -> None:
-    """Test JuHarmonizePredictor Class using storage."""
+def test_PrettYharmonizePredictor_storage() -> None:
+    """Test PrettYharmonizePredictor Class using storage."""
     # Load data
     df_iris = load_dataset('iris')
 
@@ -82,7 +82,7 @@ def test_JuHarmonizePredictor_storage() -> None:
     sites = np.random.randint(low=0, high=2, size=num_samples)
 
     # test Harmonization implementation
-    juharm_model = JuHarmonizePredictor(use_disk=True)
+    juharm_model = PrettYharmonizePredictor(use_disk=True)
     assert juharm_model._models is None
 
     juharm_model.fit(data, sites=sites, y=target)
@@ -93,7 +93,7 @@ def test_JuHarmonizePredictor_storage() -> None:
     assert harm_data_ft.shape == data.shape
 
     # test Harmonization implementation with extra vars
-    juharm_model = JuHarmonizePredictor(use_disk=True)
+    juharm_model = PrettYharmonizePredictor(use_disk=True)
     assert juharm_model._models is None
 
     juharm_model.fit(data, sites=sites, y=target)
@@ -102,4 +102,3 @@ def test_JuHarmonizePredictor_storage() -> None:
 
     harm_data_ft = juharm_model.transform(data)
     assert harm_data_ft.shape == data.shape
-
