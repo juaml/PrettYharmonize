@@ -1,19 +1,19 @@
 import numpy as np
 from seaborn import load_dataset
 
-from prettyharmonizepredictor import PrettYharmonizePredictor
+from prettyharmonize import PrettYharmonizePredictor
 
 
 def test_PrettYharmonizePredictor() -> None:
     """Test PrettYharmonizePredictor Class"""
     # Load data
-    df_iris = load_dataset('iris')
+    df_iris = load_dataset("iris")
 
     # Binary clasification problem
-    df_iris = df_iris[df_iris['species'].isin(['versicolor', 'virginica'])]
+    df_iris = df_iris[df_iris["species"].isin(["versicolor", "virginica"])]
 
     # Get target
-    target = df_iris['species'].isin(['versicolor']).astype(int)
+    target = df_iris["species"].isin(["versicolor"]).astype(int)
     target = target.to_numpy()
     # Get Classes
     # classes = np.unique(target)
@@ -21,8 +21,9 @@ def test_PrettYharmonizePredictor() -> None:
     # n_classes = len(classes)
 
     # Data must be a numpy array [N_samples x N_Features]
-    data = df_iris[['sepal_length', 'sepal_width',
-                    'petal_length', 'petal_width']].values
+    data = df_iris[
+        ["sepal_length", "sepal_width", "petal_length", "petal_width"]
+    ].values
 
     # Get samples and features form the data
     num_samples, _ = data.shape
@@ -32,38 +33,38 @@ def test_PrettYharmonizePredictor() -> None:
     sites = np.random.randint(low=0, high=2, size=num_samples)
 
     # test Harmonization implementation
-    juharm_model = PrettYharmonizePredictor()
-    assert juharm_model._models is None
+    pretty_model = PrettYharmonizePredictor()
+    assert pretty_model._models is None
 
-    juharm_model.fit(data, sites=sites, y=target)
+    pretty_model.fit(data, sites=sites, y=target)
 
-    assert len(juharm_model._models) == data.shape[1]
+    assert len(pretty_model._models) == data.shape[1]
 
-    harm_data_ft = juharm_model.transform(data)
+    harm_data_ft = pretty_model.transform(data)
     assert harm_data_ft.shape == data.shape
 
     # test Harmonization implementation with extra vars
-    juharm_model = PrettYharmonizePredictor()
-    assert juharm_model._models is None
+    pretty_model = PrettYharmonizePredictor()
+    assert pretty_model._models is None
 
-    juharm_model.fit(data, sites=sites, y=target)
+    pretty_model.fit(data, sites=sites, y=target)
 
-    assert len(juharm_model._models) == data.shape[1]
+    assert len(pretty_model._models) == data.shape[1]
 
-    harm_data_ft = juharm_model.transform(data)
+    harm_data_ft = pretty_model.transform(data)
     assert harm_data_ft.shape == data.shape
 
 
 def test_PrettYharmonizePredictor_storage() -> None:
     """Test PrettYharmonizePredictor Class using storage."""
     # Load data
-    df_iris = load_dataset('iris')
+    df_iris = load_dataset("iris")
 
     # Binary clasification problem
-    df_iris = df_iris[df_iris['species'].isin(['versicolor', 'virginica'])]
+    df_iris = df_iris[df_iris["species"].isin(["versicolor", "virginica"])]
 
     # Get target
-    target = df_iris['species'].isin(['versicolor']).astype(int)
+    target = df_iris["species"].isin(["versicolor"]).astype(int)
     target = target.to_numpy()
     # Get Classes
     # classes = np.unique(target)
@@ -71,8 +72,9 @@ def test_PrettYharmonizePredictor_storage() -> None:
     # n_classes = len(classes)
 
     # Data must be a numpy array [N_samples x N_Features]
-    data = df_iris[['sepal_length', 'sepal_width',
-                    'petal_length', 'petal_width']].values
+    data = df_iris[
+        ["sepal_length", "sepal_width", "petal_length", "petal_width"]
+    ].values
 
     # Get samples and features form the data
     num_samples, _ = data.shape
@@ -82,23 +84,23 @@ def test_PrettYharmonizePredictor_storage() -> None:
     sites = np.random.randint(low=0, high=2, size=num_samples)
 
     # test Harmonization implementation
-    juharm_model = PrettYharmonizePredictor(use_disk=True)
-    assert juharm_model._models is None
+    pretty_model = PrettYharmonizePredictor(use_disk=True)
+    assert pretty_model._models is None
 
-    juharm_model.fit(data, sites=sites, y=target)
+    pretty_model.fit(data, sites=sites, y=target)
 
-    assert len(juharm_model._models) == data.shape[1]
+    assert len(pretty_model._models) == data.shape[1]
 
-    harm_data_ft = juharm_model.transform(data)
+    harm_data_ft = pretty_model.transform(data)
     assert harm_data_ft.shape == data.shape
 
     # test Harmonization implementation with extra vars
-    juharm_model = PrettYharmonizePredictor(use_disk=True)
-    assert juharm_model._models is None
+    pretty_model = PrettYharmonizePredictor(use_disk=True)
+    assert pretty_model._models is None
 
-    juharm_model.fit(data, sites=sites, y=target)
+    pretty_model.fit(data, sites=sites, y=target)
 
-    assert len(juharm_model._models) == data.shape[1]
+    assert len(pretty_model._models) == data.shape[1]
 
-    harm_data_ft = juharm_model.transform(data)
+    harm_data_ft = pretty_model.transform(data)
     assert harm_data_ft.shape == data.shape

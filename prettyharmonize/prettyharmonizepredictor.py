@@ -27,7 +27,7 @@ class PrettYharmonizePredictor:
         path: Optional[Union[str, Path]] = None,
     ) -> None:
         if isinstance(model, str):
-            _, model = julearn.api.prepare_model(model, "regression")
+            model = julearn.models.get_model(model, "regression")
         self.model = model
         self.use_disk = use_disk
         self.path = path

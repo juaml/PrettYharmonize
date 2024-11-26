@@ -34,22 +34,22 @@ def test_PrettYharmonize() -> None:
     sites = np.random.randint(low=0, high=2, size=num_samples)
 
     # test Harmonization implementation
-    juharm_model = PrettYharmonize()
-    assert juharm_model._nh_model is None
-    harm_data_ft = juharm_model.fit_transform(data, target, sites)
-    assert juharm_model._nh_model is not None
-    assert juharm_model._need_covars is False
-    harm_data_t = juharm_model.transform(data, target, sites)
+    prettyharm_model = PrettYharmonize()
+    assert prettyharm_model._nh_model is None
+    harm_data_ft = prettyharm_model.fit_transform(data, target, sites)
+    assert prettyharm_model._nh_model is not None
+    assert prettyharm_model._need_covars is False
+    harm_data_t = prettyharm_model.transform(data, target, sites)
     assert_array_equal(harm_data_ft, harm_data_t)
 
     # test using string in sites
     sites = np.random.choice(['site1', 'site2'], size=num_samples)
 
     # test Harmonization implementation
-    juharm_model = PrettYharmonize()
-    assert juharm_model._nh_model is None
-    harm_data_ft = juharm_model.fit_transform(data, target, sites)
-    assert juharm_model._nh_model is not None
-    assert juharm_model._need_covars is False
-    harm_data_t = juharm_model.transform(data, target, sites)
+    prettyharm_model = PrettYharmonize()
+    assert prettyharm_model._nh_model is None
+    harm_data_ft = prettyharm_model.fit_transform(data, target, sites)
+    assert prettyharm_model._nh_model is not None
+    assert prettyharm_model._need_covars is False
+    harm_data_t = prettyharm_model.transform(data, target, sites)
     assert_array_equal(harm_data_ft, harm_data_t)

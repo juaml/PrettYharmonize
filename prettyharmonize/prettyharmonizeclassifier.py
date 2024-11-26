@@ -59,13 +59,15 @@ class PrettYharmonizeClassifier(PrettYharmonizeCV):
 
         if not isinstance(pred_model, str) and pred_model_params is not None:
             raise ValueError(
-                'pred_model_params can only be used with the julearn API '
-                '(pred_model as a string)')
+                "pred_model_params can only be used with the julearn API "
+                "(pred_model as a string)"
+            )
 
         if not isinstance(stack_model, str) and stack_model_params is not None:
             raise ValueError(
-                'stack_model_params can only be used with the julearn API '
-                '(stack_model as a string)')
+                "stack_model_params can only be used with the julearn API "
+                "(stack_model as a string)"
+            )
         if pred_model_params is None:
             pred_model_params = {}
         if pred_model is None:
@@ -77,17 +79,17 @@ class PrettYharmonizeClassifier(PrettYharmonizeCV):
             stack_model = "logit"
 
         if isinstance(stack_model, str):
-            _, stack_model = julearn.api.prepare_model(
-                stack_model, "binary_classification")
-            stack_model = julearn.api.prepare_model_params(
-                stack_model_params, stack_model
+            stack_model = julearn.models.get_model(
+                name=stack_model,
+                problem_type="classification",
+                **stack_model_params,
             )
 
         if isinstance(pred_model, str):
-            _, pred_model = julearn.api.prepare_model(
-                pred_model, "binary_classification")
-            pred_model = julearn.api.prepare_model_params(
-                pred_model_params, pred_model
+            pred_model = julearn.models.get_model(
+                name=pred_model,
+                problem_type="classification",
+                **pred_model_params,
             )
 
         super().__init__(
@@ -97,7 +99,7 @@ class PrettYharmonizeClassifier(PrettYharmonizeCV):
             n_splits=n_splits,
             random_state=random_state,
             use_cv_test_transforms=use_cv_test_transforms,
-            predict_ignore_site=predict_ignore_site
+            predict_ignore_site=predict_ignore_site,
         )
 
     def _prepare_fit(

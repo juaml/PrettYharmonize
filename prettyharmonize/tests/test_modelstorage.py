@@ -21,7 +21,7 @@ def test_modelstorage_fs(tmp_path: Path) -> None:
 
     # Test that an error is raised if the path is not writable
     with pytest.raises(ValueError, match="must be writable"):
-        ModelStorage(use_disk=True, path="/root")
+        ModelStorage(use_disk=True, path="/")
 
     test_path = (tmp_path / "test2").as_posix()
     ModelStorage(use_disk=False, path=test_path)

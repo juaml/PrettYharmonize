@@ -1,4 +1,4 @@
-"""Provide imports for juha package."""
+"""Provide imports for prettyha package."""
 
 # Authors: Federico Raimondo <f.raimondo@fz-juelich.de>
 #          Nicolás Nieto <n.nieto@fz-juelich.de>

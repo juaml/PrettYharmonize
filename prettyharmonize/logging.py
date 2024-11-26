@@ -13,7 +13,7 @@ from typing import Dict, NoReturn, Optional, Type, Union
 from warnings import warn
 
 
-logger = logging.getLogger("JUHARMONIZE")
+logger = logging.getLogger("PRETTYHARMONIZE")
 
 _logging_types = {
     "DEBUG": logging.DEBUG,
@@ -178,7 +178,7 @@ def log_versions(tbox_path: Optional[Path] = None) -> None:
     _safe_log(versions, "pandas")
     _safe_log(versions, "neuroHarmonize")
     _safe_log(versions, "statsmodels")
-    _safe_log(versions, "juharmonize")
+    _safe_log(versions, "prettyharmonize")
     logger.info("========================")
 
     if tbox_path is not None:

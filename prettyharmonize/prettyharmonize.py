@@ -9,7 +9,7 @@ from .utils import check_consistency
 
 
 class PrettYharmonize:
-    """Class to perform JuHa harmonization (learn and apply)
+    """Class to perform Pretty harmonization (learn and apply)
 
     Parameters
     ----------

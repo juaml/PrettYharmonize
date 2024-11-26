@@ -65,13 +65,15 @@ class PrettYharmonizeRegressor(PrettYharmonizeCV):
         """Initialize the class."""
         if not isinstance(pred_model, str) and pred_model_params is not None:
             raise ValueError(
-                'pred_model_params can only be used with the julearn API '
-                '(pred_model as a string)')
+                "pred_model_params can only be used with the julearn API "
+                "(pred_model as a string)"
+            )
 
         if not isinstance(stack_model, str) and stack_model_params is not None:
             raise ValueError(
-                'stack_model_params can only be used with the julearn API '
-                '(stack_model as a string)')
+                "stack_model_params can only be used with the julearn API "
+                "(stack_model as a string)"
+            )
         if pred_model_params is None:
             pred_model_params = {}
         if pred_model is None:
@@ -83,17 +85,17 @@ class PrettYharmonizeRegressor(PrettYharmonizeCV):
             stack_model = "gauss"
 
         if isinstance(stack_model, str):
-            _, stack_model = julearn.api.prepare_model(
-                stack_model, "regression")
-            stack_model = julearn.api.prepare_model_params(
-                stack_model_params, stack_model
+            stack_model = julearn.models.get_model(
+                name=stack_model,
+                problem_type="regression",
+                **stack_model_params,
             )
 
         if isinstance(pred_model, str):
-            _, pred_model = julearn.api.prepare_model(
-                pred_model, "regression")
-            pred_model = julearn.api.prepare_model_params(
-                pred_model_params, pred_model
+            pred_model = julearn.models.get_model(
+                name=pred_model,
+                problem_type="regression",
+                **pred_model_params,
             )
 
         super().__init__(
@@ -120,11 +122,11 @@ class PrettYharmonizeRegressor(PrettYharmonizeCV):
         self._y_min = min(y)
         self._y_max = max(y)
         if self.regression_points is None:
-            self.regression_points = np.linspace(
-                self._y_min, self._y_max, 10)
+            self.regression_points = np.linspace(self._y_min, self._y_max, 10)
         elif isinstance(self.regression_points, int):
             self.regression_points = np.linspace(
-                self._y_min, self._y_max, self.regression_points)
+                self._y_min, self._y_max, self.regression_points
+            )
         self._classes = self.regression_points
         self._y_mean = np.mean(y)
         self._y_std = np.std(y)
@@ -134,13 +136,15 @@ class PrettYharmonizeRegressor(PrettYharmonizeCV):
                 "min(y) > min(regression_points). "
                 f"Minimum value of y is {np.min(y)} but "
                 "minimum value of regression points is "
-                f"{np.min(self.regression_points)}")
+                f"{np.min(self.regression_points)}"
+            )
         if np.max(y) < np.max(self.regression_points):
             warn(
                 "max(y) < max(regression_points) "
                 f"Maximum value of y is {np.max(y)} but "
                 "maximum value of regression points is "
-                f"{np.max(self.regression_points)}")
+                f"{np.max(self.regression_points)}"
+            )
 
     def _pred_model_predict(self, X: npt.NDArray) -> npt.NDArray:
         """Predict the target variable using the prediction model."""
@@ -159,7 +163,8 @@ class PrettYharmonizeRegressor(PrettYharmonizeCV):
         logger.info("Searching predictions, this may take a while...")
         for i_X in range(X.shape[0]):
             t_X, t_sites, _, t_covars, _ = subset_data(
-                [i_X], X, sites, y, covars)
+                [i_X], X, sites, y, covars
+            )
             cur1, cur2 = np.array([self._y_min]), np.array([self._y_max])
             ntries = 0
             cur_dif = np.Inf
@@ -167,10 +172,12 @@ class PrettYharmonizeRegressor(PrettYharmonizeCV):
             d2 = np.Inf
             while cur_dif > self.regression_search_tol and ntries < 20:
                 t_X_harmonized = self._nh_model.transform(  # type: ignore
-                    t_X, cur1, t_sites, t_covars)
+                    t_X, cur1, t_sites, t_covars
+                )
                 pred1 = self.pred_model.predict(t_X_harmonized)  # type: ignore
                 t_X_harmonized = self._nh_model.transform(  # type: ignore
-                    t_X, cur2, t_sites, t_covars)
+                    t_X, cur2, t_sites, t_covars
+                )
                 pred2 = self.pred_model.predict(t_X_harmonized)  # type: ignore
                 d1 = abs(cur1 - pred1)
                 d2 = abs(cur2 - pred2)
