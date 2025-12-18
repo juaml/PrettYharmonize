@@ -26,7 +26,15 @@ To set up the environment for PrettYharmonize, follow these steps:
    ```bash
    git clone https://github.com/juaml/PrettYharmonize.git
    cd PrettYharmonize
+   ```
 
+#### Alternative using `pip`.
+
+   ```bash
+    git clone https://github.com/juaml/PrettYharmonize.git
+    cd PrettYharmonize
+    pip install .
+  ```
 
 ## Citation
 ```bibtex
@@ -37,7 +45,7 @@ If you use PrettYharmonize in your work, please cite the following:
   journal={arXiv preprint arXiv:2410.19643},
   year={2024}
 }
-```
+
 
 ## Licensing
 
