@@ -133,4 +133,3 @@ cython_debug/
 .DS_store
 
 # Versioning
-prettyharmonize/_version.py
