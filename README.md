@@ -9,13 +9,13 @@ It is currently being developed and maintained at the [Applied Machine Learning]
 
 ## Overview
 
-**PrettYharmonize** is a Python package developed to address data leakage in the harmonization of biomedical datasets with site-specific variability, particularly under scenarios where class balance differs across data collection sites. Traditional harmonization methods like ComBat, while widely used, often struggle with data leakage, leading to compromised model performance. PrettYharmonize introduces a novel approach that leverages "pretending" target labels to mitigate this issue, preserving biologically relevant signals without inadvertently introducing leakage. The methodology has been validated on synthetic benchmarks and real-world data, including MRI and clinical datasets, to ensure robustness in diverse site-target-dependence scenarios.
+**PrettYharmonize** is a Python package developed to address data leakage in the harmonization of biomedical datasets with site-specific variability, particularly under scenarios where class balance differs across data collection sites. Traditional harmonization methods, such as ComBat, while widely used, often struggle with data leakage, compromising model performance. PrettYharmonize introduces a novel approach that leverages "pretending" target labels to mitigate this issue, preserving biologically relevant signals without inadvertently introducing leakage. The methodology has been validated on synthetic benchmarks and real-world data, including MRI and clinical datasets, to ensure robustness in diverse site-target-dependence scenarios.
 
 ![Workflow of PrettYharmonize](figures/Train_workflow.drawio.png)
 
 PrettYharmonize Training Workflow. The schematic illustrates the pipeline for a binary classification task. Data dimensions are denoted in brackets N: number of samples.Red boxes indicate raw, unharmonized data; pink boxes indicate harmonized data. Cyan and blue ellipses represent the Harmonization and Machine Learning models, respectively. Yellow rectangles denote model predictions. Solid arrows indicate data used for model fitting; dashed arrows indicate data transformation. The process proceeds as follows: (Step 1) The full training data is partitioned via Inner Cross-Validation (CV) into inner train and validation sets. (Step 2) The Harmonization Model (HM) is fitted to the inner train data. (Step 3) Inner train data is harmonized using true labels. (Step 4) Validation data is harmonized multiple times, once for each "pretended" target class (0 and 1). (Step 5) A Predictive Model is fitted to the harmonized inner train data. (Step 6) The Predictive Model generates predictions for each version of the harmonized validation data. (Step 7) These predictions are concatenated column-wise to form the Validation Score Matrix. (Step 8) After the Inner CV cycle completes, validation score matrices are concatenated row-wise to form the Train Score Matrix. (Step 9) The Stack Model is trained on the Train Score Matrix to predict final targets.
 
-For more details, see our paper on arXiv: [Impact of Leakage on Data Harmonization in Machine Learning Pipelines in Class Imbalance Across Sites](https://arxiv.org/abs/2410.19643).
+For more details, see the full paper: [Impact of Leakage on Data Harmonization in Machine Learning Pipelines in Class Imbalance Across Sites](https://www.sciencedirect.com/science/article/pii/S0925231226005436).
 
 ## Installation
 
@@ -39,11 +39,13 @@ To set up the environment for PrettYharmonize, follow these steps:
 ## Citation
 ```bibtex
 If you use PrettYharmonize in your work, please cite the following:
-@article{nieto2024impact,
-  title={Impact of Leakage on Data Harmonization in Machine Learning Pipelines in Class Imbalance Across Sites},
+@article{nieto2026impact,
+  title={Impact of leakage on data harmonization in machine learning pipelines in class imbalance across sites.},
   author={Nieto, Nicol{\'a}s and Eickhoff, Simon B and Jung, Christian and Reuter, Martin and Diers, Kersten and Kelm, Malte and Lichtenberg, Artur and Raimondo, Federico and Patil, Kaustubh R},
-  journal={arXiv preprint arXiv:2410.19643},
-  year={2024}
+  journal={Neurocomputing},
+  pages={133146},
+  year={2026},
+  publisher={Elsevier}
 }
 
 
